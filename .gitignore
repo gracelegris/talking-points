@@ -3,3 +3,12 @@
 .RData
 .Ruserdata
 .positai
+country-specific-talking-points/reports/
+region-specific-talking-points/reports/
+country-specific-talking-points/flags/
+**/*.aux
+**/*.log
+**/*.toc
+**/utils/hpv_estimates_wuenic2025rev.xlsx
+**/utils/clean_wuenic_MASTER_2025rev.rds
+flags/
