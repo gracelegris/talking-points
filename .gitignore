@@ -11,4 +11,3 @@ country-specific-talking-points/flags/
 **/*.toc
 **/utils/hpv_estimates_wuenic2025rev.xlsx
 **/utils/clean_wuenic_MASTER_2025rev.rds
-flags/
