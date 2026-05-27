@@ -1,0 +1,1455 @@
+---
+title: ""
+output:
+  pdf_document:
+    latex_engine: xelatex
+    toc: false
+    toc_depth: 3
+geometry: "left=1cm,right=1cm,top=1.1cm,bottom=1.1cm"
+fontsize: 12pt
+params:
+  country: "Default"
+header-includes:
+  - \usepackage{enumitem}
+  - \geometry{a4paper, left=15mm, right=15mm, top=15mm, bottom=20mm}
+  - \setlist[itemize,1]{label=\textbullet}
+  - \setlist[itemize,2]{label=\(\circ\)}
+  - \setlist[itemize,3]{label=\(\infty\)}
+  - \setmainfont{Arial}
+  - \usepackage{hyperref}
+  - \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, breaklinks=true}
+  - \usepackage{tcolorbox}
+  - \usepackage{fancyhdr}
+  - \setlength{\headheight}{15pt}
+  - \addtolength{\topmargin}{-3pt}
+  - \definecolor{unicefblue}{RGB}{28, 171, 226}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead[L]{}
+  - \fancyhead[C]{}
+  - \fancyhead[R]{\hyperlink{top}{\small \color{black} $\uparrow$ Back to top}}
+  - \fancyfoot[C]{\thepage}
+  - \usepackage{tocloft}
+  - \renewcommand{\cftsecfont}{\normalfont}
+  - \renewcommand{\cftsecpagefont}{\normalfont}
+  - \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+---
+
+\hypertarget{top}{}
+
+```{r setup, include=FALSE}
+options(scipen = 999)
+
+# filter to selected country and its region peers
+df <- wuenic_dta %>% filter(country == params$country) %>% 
+  filter(!vaccine == "pol3") # we are no longer producing estimates for POL3
+hpv_df <- hpv_dta %>% filter(country == params$country)
+has_hpv_data <- nrow(hpv_df) > 0
+has_hpvc <- has_hpv_data && any(hpv_df$vaccine_code == "PRHPVC_F")
+
+add_region_names <- function(df) {
+  df <- df %>% 
+    mutate(Region_Name = case_match(Region,
+      "ROSA"          ~ "South Asia",
+      "ESAR"          ~ "Eastern and Southern Africa",
+      "ECAR"          ~ "Europe and Central Asia",
+      "MENA"          ~ "Middle East and North Africa",
+      "LACR"          ~ "Latin America and the Caribbean",
+      "WCAR"          ~ "West and Central Africa",
+      "EAPR"          ~ "East Asia and the Pacific",
+      "Non-programme" ~ "Non-programme countries",
+      .default        = Region
+    ))
+}
+df <- add_region_names(df)
+hpv_df <- add_region_names(hpv_df)
+
+# pull region and iso3c for this country
+ctry_iso   <- unique(df$iso3c)
+region <- unique(df$Region)
+ctry_regn <- df %>%
+  distinct(Region_Name, Region) %>%
+  mutate(formatted = str_glue("{Region_Name} ({Region})")) %>%
+  pull(formatted)
+
+# regional peers (all countries in same region, for comparisons)
+reg_peers <- wuenic_dta %>% filter(Region == region, lvl_1 == "country")
+hpv_peers <- hpv_dta %>% filter(Region == region, lvl_1 == "country")
+
+# get available vaccines for this country
+available_vaccines <- unique(df$vaccine)
+
+# subnational data (admin1 within country) -- update lvl_2 value to match your data
+sub_df <- wuenic_dta %>% filter(iso3c == ctry_iso)
+
+wuenic_src <- str_glue("Source: WHO/UNICEF Estimates of National Immunization Coverage, {rev_yr} revision")
+
+# countries that should have "the" before them
+the_countries <- c(
+  "United Arab Emirates", "Bahamas", "Central African Republic", "DRC", "Congo",
+  "Dominican Republic", "Gambia", "Maldives", "Marshall Islands", "Netherlands (Kingdom of the)",
+  "Philippines", "Republic of Korea", "Republic of Moldova", "Russian Federation",
+  "Solomon Islands", "State of Palestine", "United Kingdom", "United States"
+)
+
+df <- df %>%
+  mutate(the_country = ifelse(country %in% the_countries, paste("the", country), country))
+
+ctry_name  <- unique(df$country)
+the_ctry_name <- unique(df$the_country)
+
+# whether this country has introduced hpv
+hpv_intro <- wiise_hpv_intro_yrs %>%
+  filter(iso3c == ctry_iso) %>%
+  mutate(introduced = case_when(nationwide == "yes" | partially == "yes" ~ 1, TRUE ~ 0))
+  
+hpv_intro_flag <- ifelse(nrow(hpv_intro) > 0 && any(hpv_intro$introduced == 1, na.rm = TRUE), 1, 0)
+
+# get flag for header
+# flag download
+if (!require("countrycode", quietly = TRUE)) install.packages("countrycode")
+library(countrycode)
+iso2 <- tolower(countrycode(ctry_name, origin = "country.name", destination = "iso2c"))
+
+# set micronesia manually
+if (ctry_name == "Micronesia") {
+  iso2 <- "fm"
+}
+
+flag_path <- paste0("flags/", iso2, ".png")
+
+# download if not already present
+if (!file.exists(flag_path)) {
+  dir.create("flags", showWarnings = FALSE)
+  download.file(paste0("https://flagcdn.com/160x120/", iso2, ".png"), destfile = flag_path, mode = "wb")
+}
+```
+
+
+```{r banner, echo=FALSE, results='asis'}
+cat(paste0('
+\\begin{tcolorbox}[
+  colback=unicefblue,
+  colframe=unicefblue,
+  arc=6pt,
+  boxrule=0pt,
+  left=4mm,
+  right=4mm,
+  top=3mm,
+  bottom=3mm,
+  halign=center,
+  valign=center
+]
+\\begin{center}
+  {\\LARGE \\color{white} \\textbf{WUENIC Talking Points: ', ctry_name, '}} \\hspace{0.2cm}\\includegraphics[height=0.6cm]{', flag_path, '}\\\\[0.4em]
+  {\\large \\color{white} Revision Year: ', rev_yr, '}
+\\end{center}
+\\end{tcolorbox}
+\\vspace{0.4in}
+'))
+```
+
+```{r toc, echo=FALSE, results='asis'}
+cat("\\tableofcontents")
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+region_for_country <- base_map_df %>% 
+  filter(iso3c == ctry_iso) %>%
+  pull(map_region)
+
+map_df <- base_map_df %>%
+  filter(map_region == region_for_country)
+
+# shift coordinates for oceania (use 0–360 system)
+if (!is.na(region_for_country) && region_for_country == "Oceania") {
+  map_df <- st_shift_longitude(map_df)
+}
+
+# flag country
+map_df <- map_df %>%
+  mutate(highlight = ifelse(iso3c == ctry_iso, "Country", "Region"))
+
+# coord limits for maps
+if (!is.na(region_for_country)) {
+  limits <- switch(region_for_country,
+                   "Africa"   = list(x = c(-24, 56),    y = c(-40, 46)),
+                   "Americas" = list(x = c(-170, -23),  y = c(-60, 85)),
+                   "Asia"     = list(x = c(25, 150),    y = c(-15, 60)),
+                   "Europe" = list(x = c(-25, 100), y = c(34, 75)),
+                   "Oceania"  = list(x = c(110, 240),   y = c(-50, 5)),  # 0-360 space!
+                   list(x = c(-180, 180), y = c(-90, 90))
+  )
+  
+  xlim_val <- limits$x
+  ylim_val <- limits$y
+}
+
+if (!is.na(region_for_country) && region_for_country == "Oceania") {
+  pacific_crs <- st_crs("+proj=longlat +lon_0=180")
+  map_df <- st_transform(map_df, pacific_crs)
+  xlim_val <- c(-70, 15)
+  ylim_val <- c(-50, 3)
+}
+
+if (params$country == "Russian Federation") {
+  x_lim_val <- c(-25, 200)
+  ylim_val <- c(34, 85)
+}
+
+# compute centroid to calculate country size and circle small ones on map
+target_country_geo <- map_df %>% filter(highlight == "Country")
+
+is_small_country <- as.numeric(st_area(target_country_geo)) < 5e9 
+
+if (is_small_country) {
+  country_centroid <- st_centroid(target_country_geo)
+}
+
+# plot
+country_map <- ggplot(map_df) +
+  geom_sf(aes(fill = highlight), color = "white", size = 0.2) +
+  { if (is_small_country) 
+    geom_sf(data = country_centroid, inherit.aes = FALSE, size = 6, shape = 21, color = "#1CABE2", stroke = 1.5)
+  } + 
+  scale_fill_manual(values = c("Country" = "#1CABE2", "Region" = "#d7d7d7"), name = NULL) +
+  coord_sf(xlim = xlim_val, ylim = ylim_val, expand = FALSE) +
+  theme_void() +
+  theme(legend.position = "none", 
+        plot.title = element_markdown(hjust = 0.5, size = 14, face = "bold"),
+        panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)) +
+  labs(title = paste0("<span style='color:#1CABE2;'>", ctry_name, "</span> in '", region_for_country, "' region")) #+
+  # annotation_north_arrow(location = "tr", which_north = "true", style = north_arrow_fancy_orienteering(),
+  #                        height = unit(1, "cm"), width = unit(1, "cm")) +
+  # annotation_scale(location = "bl", width_hint = 0.3)
+
+```
+
+\vspace{2em}
+```{r ggplot-country-map, echo=FALSE, warning=FALSE, fig.align='center'}
+suppressMessages(print(country_map))
+```
+
+```{r setup-vax, include=FALSE}
+# key vaccines and years
+vax <- df %>%
+  filter(vaccine %in% c("dtp1", "dtp3", "mcv1", "mcv2"), year %in% c(comp_yr, rev_yr - 1, rev_yr))
+
+# unvaccinated labels
+unvac_lbl <- vax %>%
+  select(Region, iso3c, country, year, vaccine, unvaccinated_lbl) %>%
+  pivot_wider(names_from = year, values_from = unvaccinated_lbl) %>%
+  rename_with(~paste0(., "_lbl"), .cols = (ncol(.) - 2):ncol(.))
+
+# unvaccinated raw values
+unvac <- vax %>%
+  select(Region, iso3c, country, year, vaccine, unvaccinated) %>%
+  pivot_wider(names_from = year, values_from = unvaccinated) %>%
+  left_join(., unvac_lbl) %>%
+  distinct() %>%
+  mutate(pchng = round((.[[7]] / .[[5]] - 1) * 100, 0),
+         pchng_txt = case_when(
+           .[[8]] == .[[10]] ~ str_glue("remained relatively stable between {comp_yr} and {rev_yr} at {.[[10]]}"),
+           pchng < 0 ~ str_glue("declined {abs(pchng)}% from {.[[8]]} in {comp_yr} to {.[[10]]} in {rev_yr}"),
+           pchng > 0 ~ str_glue("increased {pchng}% from {.[[8]]} in {comp_yr} to {.[[10]]} in {rev_yr}"),
+           TRUE ~ NA_character_))
+
+# vaccinated
+vacc <- vax %>%
+  select(Region, iso3c, country, year, vaccine, vaccinated) %>%
+  pivot_wider(names_from = year, values_from = vaccinated) %>%
+  mutate(pchng = round((.[[7]] / .[[5]] - 1) * 100, 1),
+         pchng_txt = case_when(pchng > 0 ~ "increased", pchng < 0 ~ "decreased", TRUE ~ "remained the same")) %>%
+  label_vals_millions(.[[5]], "vacc_comp_yr_lbl") %>%
+  label_vals_millions(.[[7]], "vacc_rev_yr_lbl")
+
+# coverage
+cvg <- vax %>%
+  select(Region, iso3c, country, year, vaccine, coverage) %>%
+  pivot_wider(names_from = year, values_from = coverage)
+
+# target population (surviving infants), dtp1 only
+tgt <- vax %>%
+  filter(vaccine == "dtp1") %>%
+  select(Region, iso3c, country, year, vaccine, target) %>%
+  pivot_wider(names_from = year, values_from = target) %>%
+  mutate(diff = .[[7]] - .[[5]],
+         moreless = case_when(diff < 0 ~ "fewer", diff > 0 ~ "more", TRUE ~ "same"),
+         to_vax = case_when(
+           diff < 0 ~ "for vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population",
+           diff > 0 & diff < 1000000 ~ "vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort",
+           diff > 0 & diff >= 1000000 ~ "maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity")) %>%
+  label_vals(diff, "diff_lbl") %>%
+  mutate(diff_abs = abs(diff)) %>%
+  label_vals_millions(diff_abs, "diff_abs_lbl")
+```
+
+```{r setup-overview, include=FALSE}
+# vaccines achieving >= 90% in this country in rev_yr
+gt90 <- df %>%
+  select(-target_grp) %>%
+  distinct() %>%
+  filter(year == rev_yr) %>%
+  mutate(gt90 = ifelse(coverage >= 90, 1, 0))
+
+n_vax_total <- n_distinct(gt90$vaccine)
+n_vax_gt90  <- sum(gt90$gt90, na.rm = TRUE)
+
+# coverage change prev_yr to rev_yr for the key vaccines
+cvg_chng <- vax %>%
+  filter(year %in% c(rev_yr, rev_yr - 1)) %>%
+  select(iso3c, country, vaccine, year, coverage) %>%
+  pivot_wider(names_from = year, values_from = coverage) %>%
+  mutate(diff = .[[5]] - .[[4]],
+         diff_txt = case_when(
+           diff > 0 ~ str_glue("increased from {.[[4]]}% in {rev_yr-1} to {.[[5]]}% in {rev_yr}"),
+           diff < 0 ~ str_glue("declined from {.[[4]]}% in {rev_yr-1} to {.[[5]]}% in {rev_yr}"),
+           TRUE ~ str_glue("was the same in {rev_yr} as it was in {rev_yr-1} ({.[[5]]}%)")))
+```
+
+```{r setup-progress-ia2030-zd-target, include=FALSE}
+# zero-dose (unvaccinated dtp1) for this country (dtp1 is used as a proxy for the IA2030 goal)
+zd <- df %>%
+  filter(vaccine == "dtp1", year >= 2000) %>%
+  select(iso3c, country, year, unvaccinated)
+
+# ia2030 annual target (halve 2019 zero-dose by 2030)
+zd_2019 <- zd %>% filter(year == 2019) %>% pull(unvaccinated)
+ia2030_annual_target <- zd_2019 / 2
+
+target <- zd %>%
+  filter(year == 2019) %>% # baseline data only
+  mutate(target_2030 = unvaccinated / 2, # defines the goal: 50% reduction in unvaccinated people by 2030
+         factor = (unvaccinated - target_2030) / (2030 - 2019)) %>% # annual reduction rate needed: total drop divided by the 11-year gap
+  crossing(year_new = 2020:2030) %>% # "join" that duplicates each country's row for every year from 2020 to 2030
+  mutate(unvaccinated_new = unvaccinated - factor * (year_new - 2019)) %>% # applies linear formula to calculate the target number of zero-dose children
+  select(iso3c, country, year = year_new, unvaccinated_new)
+
+# text for ia2030 comparison in rev_yr
+zd_rev_yr <- zd %>% filter(year == rev_yr) %>% pull(unvaccinated)
+ia2030_rev_yr <- target %>% filter(year == rev_yr) %>% pull(unvaccinated_new)
+zd_pcnt_diff  <- round((zd_rev_yr / ia2030_rev_yr - 1) * 100, 0)
+zd_diff_txt   <- case_when(zd_pcnt_diff > 0 ~ "higher than", zd_pcnt_diff < 0 ~ "lower than", TRUE ~ "the same as")
+
+zd_rev_yr_lbl     <- label_vals_millions_num(zd_rev_yr)
+ia2030_rev_yr_lbl <- label_vals_millions_num(ia2030_rev_yr)
+```
+
+<!-- ===================== PAGE 1: OVERVIEW ===================== -->
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{Overview}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{Overview}")
+```
+
+- `r if (n_vax_gt90 == 0) "None" else n_vax_gt90` of the `r n_vax_total` childhood vaccines tracked for `r the_ctry_name` achieved coverage of 90% or higher in `r rev_yr`.
+
+- Coverage of DTP1 `r cvg_chng %>% filter(vaccine == "dtp1") %>% pull(diff_txt)`, DTP3 `r cvg_chng %>% filter(vaccine == "dtp3") %>% pull(diff_txt)`, and MCV1 `r cvg_chng %>% filter(vaccine == "mcv1") %>% pull(diff_txt)`.
+
+- In `r rev_yr`, the number of zero-dose children for DTP in `r the_ctry_name` (`r zd_rev_yr_lbl`) was approximately `r abs(zd_pcnt_diff)`% `r zd_diff_txt` the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 (`r ia2030_rev_yr_lbl`).
+
+
+```{r setup-heatmap-overview, include=FALSE}
+
+# filter hpv data to bind with other vaccines
+if (has_hpvc) {
+  hpv_merge <- hpv_df %>% 
+    filter(vaccine_code == "PRHPVC_F") %>%
+    select(-vaccine) %>% 
+    rename(vaccine = vaccine_code)
+  
+  # only bind columns that exist in both
+  shared_cols <- intersect(names(df), names(hpv_merge))
+  df <- bind_rows(
+    df %>% select(all_of(shared_cols)),
+    hpv_merge %>% select(all_of(shared_cols))
+  )
+}
+# heatmap for all vaccines, this country only
+heatmap_ovw_df <- df %>%
+  mutate(year = as.character(year),
+         vaccine = case_when(
+           vaccine == "hepbb" ~ "HepBB", vaccine == "hepb3" ~ "HepB3",
+           vaccine == "hib3"  ~ "Hib3",  vaccine == "rotac" ~ "RotaC",
+           vaccine == "menga" ~ "MengA", vaccine == "PRHPVC_F" ~ "HPVc",
+           TRUE ~ toupper(vaccine))) %>%
+  mutate(cvg_cat = case_when(
+    coverage < 60 ~ "<60", coverage %in% 60:69 ~ "60-69",
+    coverage %in% 70:79 ~ "70-79", coverage %in% 80:89 ~ "80-89",
+    coverage %in% 90:94 ~ "90-94", coverage >= 95 ~ ">=95", TRUE ~ NA_character_))
+
+heatmap_ovw_df$vaccine <- factor(heatmap_ovw_df$vaccine,
+  levels = c("BCG", "HepBB", "DTP1", "DTP3", "Hib3", "HepB3", "PCVC", "RotaC", "IPV1", "IPVC", "MCV1", "RCV1", "MCV2", "YFV", "MengA", "HPVc"))
+
+heatmap_overview <-
+  heatmap_ovw_df %>%
+  ggplot(aes(x = year, y = vaccine, fill = coverage)) +
+  geom_tile(color = "white") +
+  geom_text(data = heatmap_ovw_df, aes(label = coverage), colour = "white", vjust = 0.5, size = 3) +
+  labs(x = "", y = "",
+       title = str_glue("Vaccine coverage (%), {ctry_name}, 2000–{rev_yr}"),
+       caption = wuenic_src) +
+  scale_x_discrete(position = "top") +
+  scale_y_discrete(limits = rev) +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), 
+        legend.position = "bottom", 
+        legend.key.width = unit(1.2, "cm"),
+        plot.title = element_text(size = 14, hjust = 0.5, face = "bold")) +
+  scale_fill_gradientn(
+    colours = c("#B50800", "#E2231A", "#F26A21", "#FFC20E", "#80BD41", "#00833D"),
+    values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
+    guide = "colorbar", limits = c(0, 100),
+    name = "Vaccine coverage (%)  ",
+    breaks = c(0, 59, 69, 79, 89, 100), labels = c("0", "60", "70", "80", "90", "100"))
+```
+
+```{r overview-line-plot, echo=FALSE, warning=FALSE, message=FALSE, fig.align='center'}
+# prep plot data from heatmap_ovw_df (already has cleaned vaccine names and categories)
+all_vax_plot <- heatmap_ovw_df %>%
+  mutate(year = as.numeric(year)) %>%
+  filter(!is.na(coverage))
+
+# color palette - one color per vaccine
+vaccine_colors <- c(
+  "BCG"    = "#1CABE2", "HepBB"  = "#0058AB", "DTP1"   = "#00833D",
+  "DTP3"   = "#80BD41", "Hib3"   = "#6A1E74", "HepB3"  = "#961A49",
+  "PCVC"   = "#E2231A", "RotaC"  = "#F26A21", "IPV1"   = "#B50800", 
+  "IPVC"   = "#FF8C00", "MCV1"   = "#2E7EBB", "RCV1"   = "#9E9E9E", 
+  "MCV2"   = "#FFB6C1", "YFV"    = "#5B4A9C", "MengA"  = "#C8A900", 
+  "HPVc"   = "#D45F9E"
+)
+
+# first data point per vaccine for labels
+first_points <- all_vax_plot %>%
+  group_by(vaccine) %>%
+  filter(year == min(year)) %>%
+  ungroup()
+
+num_vaccines <- n_distinct(all_vax_plot$vaccine)
+
+min_coverage <- min(all_vax_plot$coverage, na.rm = TRUE)
+
+all_vax_plot <- ggplot(all_vax_plot, aes(x = year, y = coverage, color = vaccine, group = vaccine)) +
+  geom_line(size = 0.8, alpha = 0.7) +
+  geom_point(size = 1.5, alpha = 0.7) +
+  geom_hline(yintercept = 90, linetype = "dashed") +
+  geom_text(data = first_points, aes(label = vaccine, color = vaccine, face = "bold"),
+            hjust = 1.2, size = 2.5, show.legend = FALSE) +
+  scale_color_manual(values = vaccine_colors) +
+  scale_x_continuous(breaks = seq(2000, rev_yr, 1), expand = expansion(add = c(2, 0.5))) +
+  scale_y_continuous(limits = c(min_coverage - 5, 100), breaks = seq(0, 100, by = 10), name = "Coverage (%)") +
+  labs(
+    title = str_glue("Vaccine coverage over time, {ctry_name}, 2000–{rev_yr}"),
+    caption = paste0("Dotted line shows the IA2030 target of 90% coverage\n", wuenic_src),
+    x = "Year", color = NULL
+  ) +
+  theme_unicef() +
+  theme(
+    panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    legend.key.height = unit(0.6, "cm")
+  ) +
+  guides(color = guide_legend(nrow = num_vaccines))
+```
+
+```{r overview-plot, echo=FALSE, fig.width=10, fig.height=5.5}
+print(heatmap_overview)
+```
+
+```{r all_vax_plot, echo=FALSE, fig.width=10, fig.height=5.5}
+print(all_vax_plot)
+```
+
+\newpage
+
+<!-- ===================== PAGE 2: DTP1 ===================== -->
+
+```{r setup-dtp1, include=FALSE}
+v <- "dtp1"
+unvac_v <- unvac %>% filter(vaccine == v)
+cvg_v   <- cvg   %>% filter(vaccine == v)
+vacc_v  <- vacc  %>% filter(vaccine == v)
+
+# dtp1 coverage for this country in rev_yr and comp_yr
+ctry_cvg_rev  <- cvg_v %>% pull(7)   # rev_yr column
+ctry_cvg_comp <- cvg_v %>% pull(5)   # comp_yr column
+
+# regional rank (among peers) in rev_yr
+reg_rank <- reg_peers %>%
+  filter(vaccine == v, year == rev_yr) %>%
+  arrange(desc(coverage)) %>%
+  mutate(rank = row_number()) %>%
+  filter(iso3c == ctry_iso)
+
+n_peers <- reg_peers %>% filter(vaccine == v, year == rev_yr) %>% n_distinct("iso3c")
+
+# # subnational variation
+# sub_dtp1 <- sub_df %>%
+#   filter(vaccine == v, year == rev_yr) %>%
+#   summarise(min_cvg = min(coverage, na.rm = TRUE), max_cvg = max(coverage, na.rm = TRUE),
+#             range_cvg = max(coverage, na.rm = TRUE) - min(coverage, na.rm = TRUE),
+#             n_admin1 = n_distinct(admin1_master))
+# 
+# sub_variation_txt <- case_when(
+#   sub_dtp1$range_cvg >= 20 ~ str_glue("Subnational variation is high, with coverage ranging from {sub_dtp1$min_cvg}% to {sub_dtp1$max_cvg}% across {sub_dtp1$n_admin1} admin1 areas"),
+#   sub_dtp1$range_cvg >= 10 ~ str_glue("Subnational variation is moderate, with coverage ranging from {sub_dtp1$min_cvg}% to {sub_dtp1$max_cvg}% across {sub_dtp1$n_admin1} admin1 areas"),
+#   TRUE ~ str_glue("Subnational variation is low, with coverage ranging from {sub_dtp1$min_cvg}% to {sub_dtp1$max_cvg}% across {sub_dtp1$n_admin1} admin1 areas"))
+
+# dtp1->dtp3 dropout
+dropout_dtp <- df %>%
+  filter(year %in% c(comp_yr, rev_yr), vaccine %in% c("dtp1", "dtp3")) %>%
+  select(iso3c, country, year, vaccine, vaccinated) %>%
+  pivot_wider(names_from = vaccine, values_from = vaccinated) %>%
+  mutate(dropout = round(((dtp1 - dtp3) / dtp1) * 100, 0),
+         dropout_txt = case_when(
+           dropout < 5  ~ "Low DTP dropout rates imply good ability to provide a complete vaccine series early in life",
+           dropout <= 10 ~ "Medium DTP dropout rates imply moderate ability to provide a complete vaccine series early in life",
+           dropout > 10  ~ "High DTP dropout rates imply poor ability to provide a complete vaccine series early in life"))
+
+dropout_comp_dtp <- dropout_dtp %>%
+  select(-c(dtp1, dtp3, dropout_txt)) %>%
+  pivot_wider(names_from = year, values_from = dropout) %>%
+  mutate(diff = .[[4]] - .[[3]],
+         diff_txt = case_when(
+           diff == 1 ~ str_glue("{diff} percentage point higher than in {comp_yr} ({.[[3]]}%)"),
+           diff > 0 ~ str_glue("{diff} percentage points higher than in {comp_yr} ({.[[3]]}%)"),
+           diff == -1 ~ str_glue("{abs(diff)} percentage point lower than in {comp_yr} ({.[[3]]}%)"),
+           diff < -1 ~ str_glue("{abs(diff)} percentage points lower than in {comp_yr} ({.[[3]]}%)"),
+           TRUE ~ str_glue("the same as in {comp_yr}")))
+```
+
+
+```{r dtp1-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
+# prep dtp1 coverage over time
+plot_dtp1 <- df %>% filter(vaccine == "dtp1") %>% select(year, coverage)
+
+# get number unvaccinated for secondary y-axis
+plot_zd_dtp <- df %>%
+  filter(vaccine %in% c("dtp1")) %>% 
+   select(year, unvaccinated)
+
+# scaling factor for secondary axis
+scale_factor <- max(plot_dtp1$coverage, na.rm = TRUE) / max(plot_zd_dtp$unvaccinated, na.rm = TRUE)
+
+# plot
+dtp_plot <- ggplot() +
+  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated * scale_factor, fill = "Zero-dose children"),
+           alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_dtp1, aes(x = year, y = coverage, color = "DTP1 coverage"), size = 0.8) +
+  geom_point(data = plot_dtp1, aes(x = year, y = coverage, color = "DTP1 coverage"), size = 1.5) +
+  geom_hline(yintercept = 90, linetype = "dashed") +
+  scale_color_manual(name = NULL, values = c("DTP1 coverage" = "#1CABE2")) +
+  scale_fill_manual(name = NULL, values = c("Zero-dose children" = "#E2231A")) +
+  scale_x_continuous(breaks = seq(min(plot_dtp1$year), max(plot_dtp1$year), 1)) +
+  scale_y_continuous(limits = c(0, 100), name = "Coverage (%)",
+                     sec.axis = sec_axis(~ . / scale_factor,
+                                         name = "Zero-dose children",
+                                         labels = scales::label_comma())) +
+  labs(
+    title = str_glue("DTP1 coverage and zero-dose children over time, {ctry_name}, 2000–{rev_yr}"),
+    caption = paste0("Dotted line shows the IA2030 target of 90% coverage\n", wuenic_src),
+    x = "Year"
+  ) +
+  guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
+  theme_unicef() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{DTP1: Reaching zero-dose children}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{DTP1: Reaching zero-dose children}")
+```
+
+
+- In `r rev_yr`, DTP1 coverage in `r the_ctry_name` was `r ctry_cvg_rev`%, compared to `r ctry_cvg_comp`% in `r comp_yr`.
+
+- In `r rev_yr`, the number of zero-dose children in `r the_ctry_name` (`r zd_rev_yr_lbl`) was approximately `r abs(zd_pcnt_diff)`% `r zd_diff_txt` the annual IA2030 target (`r ia2030_rev_yr_lbl`).
+
+- With `r tgt$diff_abs_lbl` `r tgt$moreless` surviving infants in `r rev_yr` compared to `r comp_yr`, `r tgt$to_vax`.
+
+- Among `r ctry_regn` region peers, `r the_ctry_name` ranked `r reg_rank$rank` out of `r n_peers` countries in DTP1 coverage in `r rev_yr` (`r ctry_cvg_rev`% vs. regional peers).
+
+- DTP1-to-DTP3 dropout in `r rev_yr` was `r dropout_dtp %>% filter(year == rev_yr) %>% pull(dropout)`%, `r dropout_comp_dtp %>% pull(diff_txt)`. `r dropout_dtp %>% filter(year == rev_yr) %>% pull(dropout_txt)`.
+
+\vspace{1em}
+
+```{r dtp1, echo=FALSE, fig.width=10, fig.height=6.2}
+print(dtp_plot)
+```
+
+
+```{r setup-heatmap-dtp1-sub, include=FALSE}
+# # heatmap of dtp1 by admin1 over time
+# heatmap_sub_dtp1 <-
+#   sub_df %>%
+#   filter(vaccine == "dtp1", year >= 2000) %>%
+#   mutate(year = as.factor(year)) %>%
+#   ggplot(aes(x = year, y = reorder(admin1_master, coverage), fill = coverage)) +
+#   geom_tile(color = "white") +
+#   geom_text(aes(label = coverage), colour = "black", size = 2.8) +
+#   labs(x = "", y = "",
+#        title = str_glue("DTP1 coverage (%), by admin1, {ctry_name}, 2000-{rev_yr}"),
+#        caption = wuenic_src) +
+#   scale_x_discrete(position = "top") +
+#   theme_minimal() +
+#   theme(panel.grid = element_blank(), legend.position = "bottom", legend.key.width = unit(1.2, "cm"),
+#         axis.text.x = element_text(angle = 45, hjust = 0, size = 9)) +
+#   scale_fill_gradientn(
+#     colours = c("#B50800", "#E2231A", "#F26A21", "#FFC20E", "#80BD41", "#00833D"),
+#     values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
+#     guide = "colorbar", limits = c(0, 100),
+#     name = "Vaccine coverage (%)  ",
+#     breaks = c(0, 59, 69, 79, 89, 100), labels = c("0", "60", "70", "80", "90", "100"))
+```
+
+```{r ggplot-dtp1-sub, echo=FALSE, fig.width=10, fig.height=6.5}
+#print(heatmap_sub_dtp1)
+```
+
+<!-- ===================== PAGE 3: DTP3 ===================== -->
+
+```{r setup-dtp3, include=FALSE}
+v <- "dtp3"
+unvac_v <- unvac %>% filter(vaccine == v)
+cvg_v   <- cvg   %>% filter(vaccine == v)
+vacc_v  <- vacc  %>% filter(vaccine == v)
+
+ctry_cvg_rev_dtp3  <- cvg_v %>% pull(7)
+ctry_cvg_comp_dtp3 <- cvg_v %>% pull(5)
+
+# regional rank
+reg_rank_dtp3 <- reg_peers %>%
+  filter(vaccine == v, year == rev_yr) %>%
+  arrange(desc(coverage)) %>%
+  mutate(rank = row_number()) %>%
+  filter(iso3c == ctry_iso)
+
+# un- and under-vaccinated (unvaccinated for dtp3)
+unvac_dtp3_rev  <- unvac_v %>% pull(7)
+unvac_dtp3_lbl  <- label_vals_millions_num(unvac_dtp3_rev)
+
+# population growth context
+tgt_chng <- tgt %>%
+  mutate(pop_grwth = round((.[[7]] / .[[5]] - 1) * 100, 0)) %>%
+  label_vals_millions(.[[7]], "tgt_rev_yr") %>%
+  label_vals_millions(.[[5]], "tgt_comp_yr")
+
+pop_chng_txt <- if (ctry_cvg_rev_dtp3 < ctry_cvg_comp_dtp3 & tgt[[7]] > tgt[[5]]) {
+  str_glue("Due to population growth of approximately {tgt_chng$pop_grwth}% between {comp_yr} and {rev_yr}, DTP3 coverage in {rev_yr} ({ctry_cvg_rev_dtp3}%) was lower than in {comp_yr} ({ctry_cvg_comp_dtp3}%)")
+} else { "" }
+
+# # subnational variation for dtp3
+# sub_dtp3 <- sub_df %>%
+#   filter(vaccine == v, year == rev_yr) %>%
+#   summarise(min_cvg = min(coverage, na.rm = TRUE), max_cvg = max(coverage, na.rm = TRUE),
+#             range_cvg = max(coverage, na.rm = TRUE) - min(coverage, na.rm = TRUE),
+#             n_admin1 = n_distinct(admin1_master))
+# 
+# sub_var_dtp3_txt <- case_when(
+#   sub_dtp3$range_cvg >= 20 ~ str_glue("Subnational variation is high, with coverage ranging from {sub_dtp3$min_cvg}% to {sub_dtp3$max_cvg}% across {sub_dtp3$n_admin1} admin1 areas"),
+#   sub_dtp3$range_cvg >= 10 ~ str_glue("Subnational variation is moderate, with coverage ranging from {sub_dtp3$min_cvg}% to {sub_dtp3$max_cvg}% across {sub_dtp3$n_admin1} admin1 areas"),
+#   TRUE ~ str_glue("Subnational variation is low, with coverage ranging from {sub_dtp3$min_cvg}% to {sub_dtp3$max_cvg}% across {sub_dtp3$n_admin1} admin1 areas"))
+```
+
+```{r dtp3-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
+# prep dtp3 coverage over time
+plot_dtp3 <- df %>% filter(vaccine == "dtp3") %>% select(year, coverage)
+
+# get number unvaccinated for secondary y-axis
+plot_zd_dtp3 <- df %>%
+  filter(vaccine %in% c("dtp3")) %>% 
+   select(year, unvaccinated)
+
+# scaling factor for secondary axis
+scale_factor <- max(plot_dtp3$coverage, na.rm = TRUE) / max(plot_zd_dtp3$unvaccinated, na.rm = TRUE)
+
+# plot
+dtp3_plot <- ggplot() +
+  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated * scale_factor, fill = "Un- or Under-Vaccinated Children"),
+           alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_dtp3, aes(x = year, y = coverage, color = "DTP3 coverage"), size = 0.8) +
+  geom_point(data = plot_dtp3, aes(x = year, y = coverage, color = "DTP3 coverage"), size = 1.5) +
+  geom_hline(yintercept = 90, linetype = "dashed") +
+  scale_color_manual(name = NULL, values = c("DTP3 coverage" = "#1CABE2")) +
+  scale_fill_manual(name = NULL, values = c("Un- or Under-Vaccinated Children" = "#E2231A")) +
+  geom_hline(yintercept = 90, linetype = "dashed") +
+  scale_color_manual(values = c("DTP3 coverage" = "#1CABE2", "Un- or Under-Vaccinated Children" = "#E2231A")) +
+  scale_x_continuous(breaks = seq(min(plot_dtp3$year), max(plot_dtp3$year), 1)) +
+  scale_y_continuous(limits = c(0, 100), name = "Coverage (%)", sec.axis = sec_axis(~ . / scale_factor, 
+                                                                                    name = "Un- or Under-Vaccinated Children", 
+                                                                                    labels = scales::label_comma())) +
+  labs(
+    title = str_glue("DTP3 coverage and un- or under-vaccinated children over time, {ctry_name}, 2000–{rev_yr}"),
+    caption = paste0("Dotted line shows the IA2030 target of 90% coverage\n", wuenic_src),
+    x = "Year",
+    color = NULL
+  ) +
+  theme_unicef() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_line(),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    legend.position = "bottom"
+  )
+```
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{DTP3: A marker of routine immunization service delivery to children}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{DTP3: A marker of routine immunization service delivery to children}")
+```
+
+- The number of children vaccinated with DTP3 `r vacc_v %>% pull(pchng_txt)` from `r vacc_v %>% pull(vacc_comp_yr_lbl)` in `r comp_yr` to `r vacc_v %>% pull(vacc_rev_yr_lbl)` in `r rev_yr`. `r pop_chng_txt`
+
+- In `r rev_yr`, `r dropout_dtp %>% filter(year == rev_yr) %>% pull(dropout)`% of children who received DTP1 did not receive DTP3. This `r dropout_dtp %>% filter(year == rev_yr) %>% pull(dropout)`% dropout was `r dropout_comp_dtp %>% pull(diff_txt)`. `r dropout_dtp %>% filter(year == rev_yr) %>% pull(dropout_txt)`.
+
+- In `r rev_yr`, DTP3 coverage in `r the_ctry_name` was `r ctry_cvg_rev_dtp3`%, leaving `r unvac_dtp3_lbl` children un- or under-vaccinated.
+
+- Among `r ctry_regn` region peers, `r the_ctry_name` ranked `r reg_rank_dtp3$rank` out of `r n_peers` countries in DTP3 coverage in `r rev_yr`.
+
+\vspace{1em}
+
+```{r dtp3, echo=FALSE, fig.width=10, fig.height=6.2}
+print(dtp3_plot)
+```
+
+```{r setup-heatmap-dtp3-sub, include=FALSE}
+# heatmap_sub_dtp3 <-
+#   sub_df %>%
+#   filter(vaccine == "dtp3", year >= 2000) %>%
+#   mutate(year = as.factor(year)) %>%
+#   ggplot(aes(x = year, y = reorder(admin1_master, coverage), fill = coverage)) +
+#   geom_tile(color = "white") +
+#   geom_text(aes(label = coverage), colour = "black", size = 2.8) +
+#   labs(x = "", y = "",
+#        title = str_glue("DTP3 coverage (%), by admin1, {ctry_name}, 2000-{rev_yr}"),
+#        caption = wuenic_src) +
+#   scale_x_discrete(position = "top") +
+#   theme_minimal() +
+#   theme(panel.grid = element_blank(), legend.position = "bottom", legend.key.width = unit(1.2, "cm"),
+#         axis.text.x = element_text(angle = 45, hjust = 0, size = 9)) +
+#   scale_fill_gradientn(
+#     colours = c("#B50800", "#E2231A", "#F26A21", "#FFC20E", "#80BD41", "#00833D"),
+#     values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
+#     guide = "colorbar", limits = c(0, 100),
+#     name = "Vaccine coverage (%)  ",
+#     breaks = c(0, 59, 69, 79, 89, 100), labels = c("0", "60", "70", "80", "90", "100"))
+```
+
+```{r ggplot-dtp3-sub, echo=FALSE, fig.width=10, fig.height=6.5}
+#print(heatmap_sub_dtp3)
+```
+
+<!-- ===================== PAGE 4: MCV ===================== -->
+
+```{r setup-mcv, include=FALSE}
+
+if ("mcv2" %in% available_vaccines) {
+  v_mcv <- c("mcv1", "mcv2")
+} else {
+  v_mcv <- c("mcv1")
+}
+unvac_v <- unvac %>% filter(vaccine %in% v_mcv)
+cvg_v   <- cvg   %>% filter(vaccine %in% v_mcv)
+
+# mcv1 coverage change
+cvg_mcv1 <- cvg_v %>%
+  filter(vaccine == "mcv1") %>%
+  mutate(diff = .[[7]] - .[[5]],
+         cvg_chng_txt = case_when(
+           diff %in% c(-1:1) ~ str_glue("remained relatively stable, within 1 percentage point of the {comp_yr} level"),
+           diff < -1 ~ str_glue("was lower than in {comp_yr} ({.[[5]]}%)"),
+           diff > 1  ~ str_glue("was higher than in {comp_yr} ({.[[5]]}%)") ))
+
+# mcv2 coverage change
+if ("mcv2" %in% available_vaccines) {
+  cvg_mcv2 <- cvg_v %>%
+    filter(vaccine == "mcv2") %>%
+    mutate(diff = .[[7]] - .[[5]],
+           cvg_chng_txt = case_when(
+             diff %in% c(-1:1) ~ str_glue("remained relatively stable, within 1 percentage point of the {comp_yr} level"),
+             diff < -1 ~ str_glue("decreased from {.[[5]]}% in {comp_yr} to {.[[7]]}% in {rev_yr}"),
+             diff > 1  ~ str_glue("increased from {.[[5]]}% in {comp_yr} to {.[[7]]}% in {rev_yr}") ))
+  
+  # unvaccinated mcv1 vs mcv2
+  unvac_mcv <- unvac_v %>%
+    select(iso3c, country, vaccine, 7) %>%
+    pivot_wider(names_from = vaccine, values_from = last_col()) %>%
+    mutate(diff = mcv2 - mcv1) %>%
+    label_vals_millions(mcv1, "mcv1_lbl") %>%
+    label_vals_millions(mcv2, "mcv2_lbl") %>%
+    label_vals_millions(diff, "diff_lbl")
+
+} else {
+  cvg_mcv2 <- cvg_v %>% 
+    mutate(cvg_chng_txt = paste0("data is not available in ", ctry_name, "'s WUENIC data"))
+    
+  unvac_mcv <- NULL
+}  
+
+# regional rank for mcv1
+reg_rank_mcv1 <- reg_peers %>%
+  filter(vaccine == "mcv1", year == rev_yr) %>%
+  arrange(desc(coverage)) %>%
+  mutate(rank = row_number()) %>%
+  filter(iso3c == ctry_iso)
+
+# dtp1->mcv1 dropout
+dropout_mcv <- df %>%
+  filter(year %in% c(comp_yr, rev_yr), vaccine %in% c("dtp1", "mcv1")) %>%
+  select(iso3c, country, year, vaccine, vaccinated) %>%
+  pivot_wider(names_from = vaccine, values_from = vaccinated) %>%
+  mutate(dropout = round(((dtp1 - mcv1) / dtp1) * 100, 0),
+         dropout_txt = case_when(
+           dropout < 5  ~ "Low DTP-MCV dropout rates imply good retention and ability to provide a full course of vaccines in infancy",
+           dropout <= 10 ~ "Medium DTP-MCV dropout rates imply moderate retention in immunization programmes",
+           dropout > 10  ~ "High DTP-MCV dropout rates imply poor retention in immunization programmes"))
+
+dropout_comp_mcv <- dropout_mcv %>%
+  select(-c(dtp1, mcv1, dropout_txt)) %>%
+  pivot_wider(names_from = year, values_from = dropout) %>%
+  mutate(diff = .[[4]] - .[[3]],
+         diff_txt = case_when(
+           diff == 1 ~ str_glue("{diff} percentage point higher than in {comp_yr} ({.[[3]]}%)"),
+           diff > 0 ~ str_glue("{diff} percentage points higher than in {comp_yr} ({.[[3]]}%)"),
+           diff == -1 ~ str_glue("{abs(diff)} percentage point lower than in {comp_yr} ({.[[3]]}%)"),
+           diff < -1 ~ str_glue("{abs(diff)} percentage points lower than in {comp_yr} ({.[[3]]}%)"),
+           TRUE ~ str_glue("the same as in {comp_yr}")))
+
+# persistently low mcv1 (last 3 years < 80%)
+nyrs <- 3; thrshold <- 80
+cvg_trend_mcv1 <- df %>%
+  filter(vaccine == "mcv1", year %in% seq(rev_yr - nyrs + 1, rev_yr)) %>%
+  mutate(ltx = ifelse(coverage < thrshold, 1, 0)) %>%
+  summarise(sum = sum(ltx), mean_cvg = mean(coverage, na.rm = TRUE))
+
+capital_the_name <- if_else(str_starts(the_ctry_name, "the "), str_replace(the_ctry_name, "^the ", "The "), the_ctry_name)
+persistent_low_txt <- if (cvg_trend_mcv1$sum == nyrs) {
+  str_glue("{capital_the_name} has had MCV1 coverage below {thrshold}% for all of the last {nyrs} years")
+} else { str_glue("{capital_the_name} has not had MCV1 coverage below {thrshold}% for any of the last {nyrs} years") }
+
+# # subnational variation for mcv1
+# sub_mcv1 <- sub_df %>%
+#   filter(vaccine == "mcv1", year == rev_yr) %>%
+#   summarise(min_cvg = min(coverage, na.rm = TRUE), max_cvg = max(coverage, na.rm = TRUE),
+#             range_cvg = max(coverage, na.rm = TRUE) - min(coverage, na.rm = TRUE),
+#             n_admin1 = n_distinct(admin1_master))
+# 
+# sub_var_mcv1_txt <- case_when(
+#   sub_mcv1$range_cvg >= 20 ~ str_glue("Subnational variation is high, with MCV1 coverage ranging from {sub_mcv1$min_cvg}% to {sub_mcv1$max_cvg}% across {sub_mcv1$n_admin1} admin1 areas"),
+#   sub_mcv1$range_cvg >= 10 ~ str_glue("Subnational variation is moderate, with MCV1 coverage ranging from {sub_mcv1$min_cvg}% to {sub_mcv1$max_cvg}% across {sub_mcv1$n_admin1} admin1 areas"),
+#   TRUE ~ str_glue("Subnational variation is low, with MCV1 coverage ranging from {sub_mcv1$min_cvg}% to {sub_mcv1$max_cvg}% across {sub_mcv1$n_admin1} admin1 areas"))
+```
+
+```{r mcv-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
+
+# prep mcv1 coverage
+plot_mcv1 <- df %>% filter(vaccine == "mcv1") %>% select(year, coverage)
+
+# prep mcv2 coverage only if available
+if ("mcv2" %in% available_vaccines) {
+  plot_mcv2 <- df %>% filter(vaccine == "mcv2") %>% select(year, coverage)
+}
+
+# prep zero-dose (mcv1-based)
+plot_zd_mcv <- df %>% filter(vaccine == "mcv1") %>% select(year, unvaccinated)
+
+# scaling factor for secondary axis
+scale_factor <- max(plot_mcv1$coverage, na.rm = TRUE) / max(plot_zd_mcv$unvaccinated, na.rm = TRUE)
+  
+# plot
+mcv_plot <- ggplot() +
+  geom_col(data = plot_zd_mcv, aes(x = year, y = unvaccinated * scale_factor, fill = "MCV zero-dose children"),
+           alpha = 0.4, width = 0.6) +
+  # mcv1
+  geom_line(data = plot_mcv1, aes(x = year, y = coverage, color = "MCV1 coverage"), size = 0.8) +
+  geom_point(data = plot_mcv1, aes(x = year, y = coverage, color = "MCV1 coverage"), size = 1.5) +
+  # mcv2 (only if exists)
+  {if ("mcv2" %in% available_vaccines)
+    list(
+      geom_line(data = plot_mcv2, aes(x = year, y = coverage, color = "MCV2 coverage"), size = 0.8),
+      geom_point(data = plot_mcv2, aes(x = year, y = coverage, color = "MCV2 coverage"), size = 1.5)
+    )} +
+  geom_hline(yintercept = 90, linetype = "dashed") +
+  scale_color_manual(name = NULL, values = c("MCV1 coverage" = "#1CABE2", "MCV2 coverage" = "#6A1E74")) +
+  scale_fill_manual(name = NULL, values = c("MCV zero-dose children" = "#E2231A")) +
+  scale_x_continuous(breaks = seq(min(plot_mcv1$year), max(plot_mcv1$year), 1)) +
+  scale_y_continuous(limits = c(0, 100), name = "Coverage (%)",
+    sec.axis = sec_axis(~ . / scale_factor, name = "MCV zero-dose children", labels = scales::label_comma())) +
+  guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
+  labs(title = str_glue("MCV coverage and MCV zero-dose children over time, {ctry_name}, 2000–{rev_yr}"),
+    caption = paste0("Dotted line shows the IA2030 target of 90% coverage\n", wuenic_src),
+    x = "Year") +
+  theme_unicef() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+    plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+    legend.position = "bottom")
+```
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{MCV: Canary in the coal mine}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{MCV: Canary in the coal mine}")
+```
+
+\vspace{1em}
+
+- MCV1 coverage in `r rev_yr` (`r cvg_mcv1 %>% pull(7)`%) `r cvg_mcv1 %>% pull(cvg_chng_txt)`.
+
+- MCV2 coverage `r cvg_mcv2 %>% pull(cvg_chng_txt)`. This leaves `r unvac_mcv$mcv1_lbl` children without any protection against measles and another `r unvac_mcv$diff_lbl` with only partial protection.
+
+- In `r rev_yr`, `r dropout_mcv %>% filter(year == rev_yr) %>% pull(dropout)`% of children who received DTP1 did not receive MCV1. DTP-MCV dropout was `r dropout_comp_mcv %>% pull(diff_txt)`. `r dropout_mcv %>% filter(year == rev_yr) %>% pull(dropout_txt)`.
+
+- `r persistent_low_txt`.
+
+- Among `r ctry_regn` region peers, `r the_ctry_name` ranked `r reg_rank_mcv1$rank` out of `r n_peers` countries in MCV1 coverage in `r rev_yr`.
+
+\vspace{1em}
+
+```{r mcv, echo=FALSE, fig.width=10, fig.height=6.2}
+print(mcv_plot)
+```
+
+```{r setup-heatmap-mcv1-sub, include=FALSE}
+# heatmap_sub_mcv1 <-
+#   sub_df %>%
+#   filter(vaccine == "mcv1", year >= 2000) %>%
+#   mutate(year = as.factor(year)) %>%
+#   ggplot(aes(x = year, y = reorder(admin1_master, coverage), fill = coverage)) +
+#   geom_tile(color = "white") +
+#   geom_text(aes(label = coverage), colour = "black", size = 2.8) +
+#   labs(x = "", y = "",
+#        title = str_glue("MCV1 coverage (%), by admin1, {ctry_name}, 2000-{rev_yr}"),
+#        caption = wuenic_src) +
+#   scale_x_discrete(position = "top") +
+#   theme_minimal() +
+#   theme(panel.grid = element_blank(), legend.position = "bottom", legend.key.width = unit(1.2, "cm"),
+#         axis.text.x = element_text(angle = 45, hjust = 0, size = 9)) +
+#   scale_fill_gradientn(
+#     colours = c("#B50800", "#E2231A", "#F26A21", "#FFC20E", "#80BD41", "#00833D"),
+#     values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
+#     guide = "colorbar", limits = c(0, 100),
+#     name = "Vaccine coverage (%)  ",
+#     breaks = c(0, 59, 69, 79, 89, 100), labels = c("0", "60", "70", "80", "90", "100"))
+```
+
+```{r ggplot-mcv1-sub, echo=FALSE, fig.width=10, fig.height=6.5}
+#print(heatmap_sub_mcv1)
+```
+
+<!-- ===================== PAGE 5: HPV ===================== -->
+
+```{r setup-hpv, include=FALSE}
+if(has_hpv_data) {
+  
+  # check which hpv vaccines are available
+  available_hpv <- unique(hpv_df$vaccine_code)
+  has_hpvc      <- "PRHPVC_F" %in% available_hpv
+  has_hpv1      <- "PRHPV1_F" %in% available_hpv
+  
+  # check if enough years exist for comparison (need at least hpv_rev_yr and hpv_rev_yr - 1)
+  hpvc_yrs <- hpv_df %>% filter(vaccine_code == "PRHPVC_F") %>% pull(year)
+  hpv1_yrs <- hpv_df %>% filter(vaccine_code == "PRHPV1_F") %>% pull(year)
+  
+  has_hpvc_comparison <- has_hpvc && all(c(hpv_rev_yr, hpv_rev_yr - 1) %in% hpvc_yrs)
+  has_hpv1_comparison <- has_hpv1 && all(c(hpv_rev_yr, hpv_rev_yr - 1) %in% hpv1_yrs)
+  
+  # use hpvc if available and has enough years, otherwise fall back to hpv1
+  primary_hpv_code  <- if (has_hpvc_comparison) "PRHPVC_F" else "PRHPV1_F"
+  primary_hpv_label <- if (has_hpvc_comparison) "HPVc" else "HPV1"
+  
+  # add var for if hpvc in rev_yr is available
+  has_hpvc_for_rev_yr <- has_hpvc && hpv_rev_yr %in% hpvc_yrs
+  
+  # hpv coverage change for this country
+  hpv <- hpv_df %>%
+    filter(vaccine_code == primary_hpv_code) %>%
+    select(iso3c, country, vaccine_code, year, coverage) %>%
+    filter(year %in% c(hpv_rev_yr, hpv_rev_yr - 1)) %>%
+    pivot_wider(names_from = year, values_from = coverage) %>%
+    mutate(diff = .[[5]] - .[[4]],
+           chng = case_when(diff > 0 ~ "increased", diff < 0 ~ "decreased", TRUE ~ "remained constant"),
+           diff_txt = case_when(
+             chng %in% c("increased", "decreased") ~ str_glue("{chng} from {.[[4]]}% in {hpv_rev_yr-1} to {.[[5]]}% in {hpv_rev_yr}"),
+             TRUE ~ str_glue("{chng} at {.[[5]]}% between {hpv_rev_yr-1} and {hpv_rev_yr}")),
+           gt90 = case_when(
+             .[[5]] < 80  & chng == "increased" ~ str_glue("Despite the increase, {primary_hpv_label} coverage remains below the 90% target"),
+             .[[5]] < 80  & chng != "increased" ~ str_glue("{primary_hpv_label} coverage remains below the 90% target"),
+             .[[5]] %in% 80:89 & chng == "increased" ~ str_glue("Despite the increase, {primary_hpv_label} coverage has not yet reached the 90% target"),
+             .[[5]] %in% 80:89 & chng != "increased" ~ str_glue("{primary_hpv_label} coverage has not yet reached the 90% target"),
+             .[[5]] == 90 ~ str_glue("Coverage of {primary_hpv_label} achieved the 90% target"),
+             .[[5]] > 90  ~ str_glue("Coverage of {primary_hpv_label} has exceeded the 90% target"),
+             TRUE ~ NA_character_))
+  
+  # note for when hpvc is not available
+  hpvc_unavailable_note <- if (!has_hpvc) str_glue("Note: HPVc (last dose) data is not available for {ctry_name} in WUENIC. HPV1 data is presented instead.") else NULL
+  
+  # unvaccinated females (hpv1 and/or hpvc)
+  hpv_unvac <- hpv_df %>%
+    filter(year == hpv_rev_yr) %>%
+    select(iso3c, country, vaccine_code, unvaccinated) %>%
+    pivot_wider(names_from = vaccine_code, values_from = unvaccinated)
+  
+  # add missing columns if not present
+  if (!"PRHPVC_F" %in% names(hpv_unvac)) hpv_unvac$PRHPVC_F <- NA
+  if (!"PRHPV1_F" %in% names(hpv_unvac)) hpv_unvac$PRHPV1_F <- NA
+  
+  hpv_unvac <- hpv_unvac %>%
+    mutate(diff = PRHPVC_F - PRHPV1_F) %>%
+    label_vals_millions(PRHPVC_F, "PRHPVC_F_lbl") %>%
+    label_vals_millions(PRHPV1_F, "PRHPV1_F_lbl") %>%
+    label_vals_millions(diff, "diff_lbl")
+  
+  has_hpv_num_unvac <- ifelse(!is.na(hpv_unvac$PRHPV1_F) | !is.na(hpv_unvac$PRHPVC_F), TRUE, FALSE)
+  
+  # get first year of hpv data
+  first_hpv_year <- hpv_intro %>% filter(introduced == 1) %>% pull(year) %>% min(na.rm = TRUE)
+  
+  # regional rank for hpv (use primary vaccine code)
+  reg_rank_hpv <- hpv_peers %>%
+    filter(vaccine_code == primary_hpv_code, year == hpv_rev_yr) %>%
+    arrange(desc(coverage)) %>%
+    mutate(rank = row_number()) %>%
+    filter(iso3c == ctry_iso)
+  
+  n_peers_hpv <- hpv_peers %>% filter(vaccine_code == primary_hpv_code, year == hpv_rev_yr) %>% n_distinct("iso3c")
+}
+```
+
+
+```{r hpv-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
+if (has_hpv_data) {
+  
+  # prep plot data - hpv1 always shown if available
+  plot_hpv1 <- if (has_hpv1) {
+    hpv_df %>% filter(vaccine_code == "PRHPV1_F", year >= first_hpv_year) %>% select(year, coverage)
+  } else NULL
+  
+  # hpvc only if available
+  plot_hpvc <- if (has_hpvc) {
+    hpv_df %>% filter(vaccine_code == "PRHPVC_F", year >= first_hpv_year) %>% select(year, coverage)
+  } else NULL
+  
+  # reference df for x-axis range (use whichever is available)
+  plot_hpv_ref <- if (has_hpvc) plot_hpvc else plot_hpv1
+  
+  # scale factor for unvaccinated axis (use primary vaccine code)
+  if (has_hpv_num_unvac) {
+    plot_zd_hpv <- hpv_df %>%
+      filter(vaccine_code == primary_hpv_code, year >= first_hpv_year) %>%
+      select(year, unvaccinated)
+    
+    hpv_scale_factor <- 100 / max(plot_zd_hpv$unvaccinated, na.rm = TRUE)
+  }
+  
+  hpv_plot <- ggplot() +
+    # hpv1 (if available)
+    {if (has_hpv1 && nrow(plot_hpv1) > 1) list(
+        geom_line(data = plot_hpv1, aes(x = year, y = coverage, color = "HPV1 coverage"), size = 0.8),
+        geom_point(data = plot_hpv1, aes(x = year, y = coverage, color = "HPV1 coverage"), size = 1.5)
+    ) else if (has_hpv1 && nrow(plot_hpv1) == 1) list(
+        geom_point(data = plot_hpv1, aes(x = year, y = coverage, color = "HPV1 coverage"), size = 1.5)
+    )} +
+    # hpvc (if available)
+    {if (has_hpvc && nrow(plot_hpvc) > 1) list(
+        geom_line(data = plot_hpvc, aes(x = year, y = coverage, color = "HPVc coverage"), size = 0.8),
+        geom_point(data = plot_hpvc, aes(x = year, y = coverage, color = "HPVc coverage"), size = 1.5)
+    ) else if (has_hpvc && nrow(plot_hpvc) == 1) list(
+        geom_point(data = plot_hpvc, aes(x = year, y = coverage, color = "HPVc coverage"), size = 1.5)
+    )} +
+    # unvaccinated females (if available)
+    {if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1) list(
+       geom_col(data = plot_zd_hpv, aes(x = year, y = unvaccinated * hpv_scale_factor, fill = "Unvaccinated females"),
+           alpha = 0.4, width = 0.6)
+    ) else if (has_hpv_num_unvac && nrow(plot_zd_hpv) == 1) list(
+        geom_point(data = plot_zd_hpv, aes(x = year, y = unvaccinated * hpv_scale_factor, color = "Unvaccinated females"), size = 1.5)
+    )} +
+    geom_hline(yintercept = 90, linetype = "dashed") +
+    scale_color_manual(values = c("HPV1 coverage" = "#1CABE2", "HPVc coverage" = "#6A1E72")) +
+    scale_fill_manual(name = NULL, values = c("Unvaccinated females" = "#E2231A")) +
+    scale_x_continuous(breaks = seq(min(plot_hpv_ref$year), max(plot_hpv_ref$year), 1)) +
+    {if (has_hpv_num_unvac)
+  scale_y_continuous(limits = c(0, 100), name = "Coverage (%)",
+    sec.axis = sec_axis(~ . / hpv_scale_factor, name = "Unvaccinated females",
+      labels = scales::label_comma()))
+    else
+      scale_y_continuous(limits = c(0, 100), name = "Coverage (%)")} +
+    {if (has_hpv_num_unvac)
+      guides(color = guide_legend(order = 1), fill = guide_legend(order = 2))} +
+    labs(
+      title = str_glue(
+        "{if (has_hpvc) 'HPV1 and HPVc coverage' else 'HPV1 coverage'}{if (has_hpv_num_unvac) ' and unvaccinated females' else ''} over time, {ctry_name}, {first_hpv_year}–{hpv_rev_yr}"),
+      caption = paste0(
+        "Dotted line shows the IA2030 target of 90% coverage\n",
+        if (!has_hpvc) "HPVc (last dose) data is not available for this country in WUENIC\n" else "",
+        if (!has_hpv_num_unvac) "Number of unvaccinated females not available for this country\n" else "",
+        wuenic_src),
+      x = "Year", color = NULL) +
+    theme_unicef() +
+    theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+      plot.title = element_text(size = 14, hjust = 0.5, face = "bold"),
+      legend.position = "bottom")
+}
+```
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{HPV}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{HPV}")
+```
+
+\vspace{1em}
+
+```{r hpv-intro-flag, results='asis', echo=FALSE}
+if (hpv_intro_flag == 0) {
+  cat(paste0("- ", ctry_name, " had not introduced HPV vaccination as of ", rev_yr, ".\n"))
+  cat("\\vspace{0.6em}\n")
+} else if (hpv_intro_flag == 1 & has_hpv_data == FALSE) {
+  cat(paste0("- ", ctry_name, " had introduced HPV vaccination as of ", rev_yr, " but has no ", rev_yr, " WUENIC HPV data.\n"))
+  cat("\\vspace{0.6em}\n")
+} else {
+  if (has_hpvc) {
+    cat(glue::glue("- Programme coverage of HPV1 among females {hpv %>% filter(vaccine_code == 'PRHPV1_F') %>% pull(diff_txt)}, and coverage of the last dose (HPVc) {hpv %>% filter(vaccine_code == 'PRHPVC_F') %>% pull(diff_txt)}.\n"))
+    cat("\\vspace{0.6em}\n")
+    cat(glue::glue("- {hpv %>% filter(vaccine_code == 'PRHPVC_F') %>% pull(gt90)}.\n"))
+    cat("\\vspace{0.6em}\n")
+  } else {
+    cat(glue::glue("- Programme coverage of HPV1 among females {hpv %>% filter(vaccine_code == 'PRHPV1_F') %>% pull(diff_txt)}.\n"))
+    cat("\\vspace{0.6em}\n")
+    cat(glue::glue("- {hpv %>% filter(vaccine_code == 'PRHPV1_F') %>% pull(gt90)}.\n"))
+    cat("\\vspace{0.6em}\n")
+    if (exists("has_hpvc_comparison") && !has_hpvc_comparison) {
+      cat(glue::glue("- HPVc (last dose) data is available for {ctry_name} in WUENIC but only for one year, so a year-on-year comparison is not possible and HPVc is not included in this report.\n"))
+    } else {
+      cat(glue::glue("- HPVc (last dose) coverage data is not available for {ctry_name} in WUENIC data.\n"))
+    }
+    cat("\\vspace{0.6em}\n")
+  }
+  if (has_hpv_num_unvac) {
+    cat(glue::glue("- In {hpv_rev_yr}, {hpv_unvac$PRHPV1_F_lbl} females in {the_ctry_name} did not receive any HPV vaccination.\n"))
+    cat("\\vspace{0.6em}\n")
+  } else {
+    cat(glue::glue("- The number of unvaccinated females for HPV in {the_ctry_name} in {hpv_rev_yr} is not available in WUENIC data.\n"))
+    cat("\\vspace{0.6em}\n")
+  }
+}
+if (exists("reg_rank_hpv") && nrow(reg_rank_hpv) > 0) {
+  cat(glue::glue("- Among {ctry_regn} region peers, {the_ctry_name} ranked {reg_rank_hpv$rank} out of {n_peers_hpv} countries in {primary_hpv_label} coverage in {hpv_rev_yr}.\n"))
+  cat("\\vspace{0.6em}\n")
+}
+invisible(NULL)
+```
+
+
+```{r hpv, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.2}
+if (exists("hpv_plot")) {
+  print(hpv_plot)
+}
+```
+
+<!-- ===================== PAGE 6: REGIONAL COMPARISON ===================== -->
+
+```{r setup-regional-comparison, include=FALSE}
+reg_comp_vax <- reg_peers %>%
+  filter(vaccine %in% c("dtp1", "dtp3", "mcv1"), year == rev_yr) %>%
+  select(iso3c, country, vaccine, coverage)
+
+reg_comp_hpv <- hpv_peers %>%
+  filter(vaccine_code == "PRHPVC_F", year == hpv_rev_yr) %>%
+  select(iso3c, country, coverage) %>%
+  mutate(vaccine = "hpvc")
+
+if (has_hpv_data && has_hpvc_for_rev_yr) {
+  reg_comp <- bind_rows(reg_comp_vax, reg_comp_hpv) %>%
+    mutate(
+      highlight = ifelse(iso3c == ctry_iso, ctry_name, "Peers"),
+      vaccine = toupper(vaccine),
+      vaccine = factor(vaccine, levels = c("DTP1", "DTP3", "MCV1", "HPVC"))
+    )
+} else {
+  reg_comp <- reg_comp_vax %>%
+    mutate(
+      highlight = ifelse(iso3c == ctry_iso, ctry_name, "Peers"),
+      vaccine = toupper(vaccine),
+      vaccine = factor(vaccine, levels = c("DTP1", "DTP3", "MCV1"))
+    )
+}
+
+# regional average per vaccine
+reg_avg <- reg_comp %>%
+  group_by(vaccine) %>%
+  summarise(avg = round(mean(coverage, na.rm = TRUE), 0))
+
+plt_reg_comp <- reg_comp %>%
+  mutate(country = reorder_within(country, coverage, vaccine)) %>%
+  ggplot(aes(x = coverage, y = country, colour = highlight, size = highlight)) +
+  geom_point() +
+  geom_vline(data = reg_avg, aes(xintercept = avg), linetype = "dashed", colour = "grey50", linewidth = 0.5) +
+  facet_wrap(~vaccine, ncol = 2, scales = "free_y") +
+  scale_y_reordered() +
+  scale_colour_manual(values = setNames(c("#E2231A", "#A8D5E2"), c(ctry_name, "Peers")), name = "") +
+  scale_size_manual(values = setNames(c(4, 2.5), c(ctry_name, "Peers")), name = "") +
+  labs(x = "Coverage (%)", y = "",
+       title = str_glue("Coverage comparison: {ctry_name} vs. {region} peers, {rev_yr}"),
+       subtitle = "Dashed line = regional average",
+       caption = wuenic_src) +
+  theme_unicef() +
+  theme(legend.position = "bottom",
+        strip.text = element_text(face = "bold"),
+        panel.grid.minor = element_blank(),
+        axis.text.y = element_text(size = 9))
+```
+
+```{r calc-height, echo=FALSE}
+# get number unique countries to set plot height dynamically
+n_countries <- length(unique(reg_comp$country))
+
+# set a base height (for titles/legend) plus a per-country height
+# 2.5 is the base, 0.2 is the height per country
+dynamic_height <- 2.5 + (n_countries * 0.28)
+
+# minimum and maximum height to prevent tiny or massive plots
+dynamic_height <- max(4, min(dynamic_height, 12))
+```
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{Regional Comparison}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{Regional Comparison}")
+```
+
+\vspace{1em}
+
+The chart below shows how `r the_ctry_name` compares to other countries in the `r ctry_regn` region on DTP1, DTP3, MCV1`r if (has_hpv_data && has_hpvc_for_rev_yr) ", and HPVc" else ""` coverage in `r rev_yr`. The dashed line represents the regional average for each vaccine.
+
+\vspace{1em}
+
+```{r, echo=FALSE, results='asis'}
+if (has_hpv_data) {
+  if (has_hpvc && !has_hpvc_for_rev_yr) {
+    cat(glue::glue("HPVc (last dose) data is available for {ctry_name} in WUENIC but not for {rev_yr}, so HPVc coverage is not included in the regional 
+    comparison.\n"))
+  } else if (!has_hpvc) {
+    cat(glue::glue("HPVc (last dose) data is not available for {ctry_name} in WUENIC, so HPVc coverage is not included in the regional comparison.\n"))
+  }
+  cat("\\vspace{0.6em}\n")
+}
+```
+
+```{r ggplot-reg-comp, echo=FALSE, fig.width=10, fig.height=dynamic_height}
+print(plt_reg_comp)
+```
+
+\newpage
+
+<!-- ===================== PAGE 7: ADDITIONAL VACCINES ===================== -->
+
+```{r setup-additional-vax, include=FALSE}
+# additional vaccines to check: bcg, hib3 or hepb3, ipv1, pcv3 or rotac
+# -- only include if the vaccine has non-missing coverage in this country
+add_vax <- c("bcg", "hib3", "hepb3", "ipv1", "pcvc", "rotac")
+
+add_vax_df <- df %>%
+  filter(vaccine %in% add_vax, year %in% c(comp_yr, rev_yr)) %>%
+  select(iso3c, country, vaccine, year, coverage) %>%
+  pivot_wider(names_from = year, values_from = coverage) %>%
+  filter(!is.na(.[[4]]) | !is.na(.[[5]])) %>%    # keep only vaccines with data
+  mutate(diff = .[[5]] - .[[4]],
+         diff_txt = case_when(
+           diff > 0  ~ str_glue("increased from {.[[4]]}% in {comp_yr} to {.[[5]]}% in {rev_yr}"),
+           diff < 0  ~ str_glue("decreased from {.[[4]]}% in {comp_yr} to {.[[5]]}% in {rev_yr}"),
+           diff == 0 ~ str_glue("remained the same ({.[[4]]}%) between {comp_yr} and {rev_yr}"),
+           TRUE ~ NA_character_),
+         vaccine_label = case_when(
+           vaccine == "bcg"   ~ "BCG",   vaccine == "hib3"  ~ "Hib3",
+           vaccine == "hepb3" ~ "HepB3", vaccine == "ipv1"  ~ "IPV1",
+           vaccine == "pcvc"  ~ "PCV3",  vaccine == "rotac" ~ "RotaC",
+           TRUE ~ toupper(vaccine)),
+         gt90 = ifelse(.[[5]] >= 90, "was above", "was not above"))
+
+# summary heatmap for additional vaccines over time
+add_vax_heatmap_df <- df %>%
+  filter(vaccine %in% add_vax, year >= 2000) %>%
+  mutate(vaccine_label = case_when(
+    vaccine == "bcg" ~ "BCG", vaccine == "hib3" ~ "Hib3", vaccine == "hepb3" ~ "HepB3",
+    vaccine == "ipv1" ~ "IPV1", vaccine == "pcvc" ~ "PCV3", vaccine == "rotac" ~ "RotaC",
+    TRUE ~ toupper(vaccine)))
+
+plt_add_vax <-
+  add_vax_heatmap_df %>%
+  ggplot(aes(x = as.factor(year), y = vaccine_label, fill = coverage)) +
+  geom_tile(color = "white") +
+  geom_text(data = add_vax_heatmap_df, aes(label = coverage), colour = "white", size = 3) +
+  labs(x = "", y = "",
+       title = str_glue("Additional vaccine coverage (%), {ctry_name}, 2000-{rev_yr}"),
+       caption = wuenic_src) +
+  scale_x_discrete(position = "top") +
+  scale_y_discrete(limits = rev) +
+  theme_minimal() +
+  theme(panel.grid = element_blank(), 
+        legend.position = "bottom", 
+        legend.key.width = unit(1.2, "cm"),
+        axis.text.x = element_text(size = 9),
+        plot.title = element_text(size = 14, hjust = 0.5, face = "bold")) +
+  scale_fill_gradientn(
+    colours = c("#B50800", "#E2231A", "#F26A21", "#FFC20E", "#80BD41", "#00833D"),
+    values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
+    guide = "colorbar", limits = c(0, 100),
+    name = "Vaccine coverage (%)  ",
+    breaks = c(0, 59, 69, 79, 89, 100), labels = c("0", "60", "70", "80", "90", "100"))
+```
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{Additional Vaccines}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{Additional Vaccines}")
+```
+
+\vspace{1em}
+
+```{r additional-vax-bullets, results='asis', echo=FALSE}
+# dynamically generate one bullet per vaccine with data
+for (i in seq_len(nrow(add_vax_df))) {
+  row <- add_vax_df[i, ]
+  cat(str_glue("-   {row$vaccine_label} coverage {row$diff_txt} and {row$gt90} the 90% target in {rev_yr}."), "\n\n")
+}
+```
+
+```{r ggplot-add-vax, echo=FALSE, fig.width=10, fig.height=4}
+print(plt_add_vax)
+```
+
+<!-- ===================== APPENDIX ===================== -->
+
+\newpage
+
+\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
+\textcolor{white}{\large \textbf{Appendix}}
+\end{tcolorbox}
+
+```{r, echo=FALSE, results='asis'}
+cat("\\phantomsection")
+cat("\\hypertarget{sec:overview}{}")
+cat("\\addcontentsline{toc}{section}{Appendix}")
+```
+
+\vspace{1em}
+
+\textcolor{cyan}{\large WHO/UNICEF Estimates of National Immunization Coverage (WUENIC)}
+
+\vspace{1em}
+
+Each year, WHO and UNICEF review national immunization data from Member States, including administrative and official coverage, survey estimates and contextual information, and use rules-based data triangulation approach to assess coverage. Estimates are produced independently, without borrowing data from other countries, and are not based on ad hoc adjustments. In some cases, they rely on a single source, typically nationally reported coverage. When data for a specific country-vaccine-year are unavailable, values from adjacent years are interpolated or extrapolated, and conflicting sources are assessed to determine the most reliable estimate, considering potential biases and expert opinion.
+
+\vspace{0.5em}
+Methods:
+
+\begin{itemize}
+  \item \begin{sloppypar}
+        \textcolor{blue}{\href{https://pubmed.ncbi.nlm.nih.gov/19649368/}{Burton et al. 2009. WHO and UNICEF estimates of national infant immunization coverage: methods and processes}}
+        \end{sloppypar}
+  \item \begin{sloppypar}
+        \textcolor{blue}{\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0047806}{Burton et al. 2012. A formal representation of the WHO and UNICEF estimates of national immunization coverage: a computational logic approach}}
+        \end{sloppypar}
+  \item \begin{sloppypar}
+        \textcolor{blue}{\href{https://openpublichealthjournal.com/VOLUME/6/PAGE/73/ABSTRACT/}{Brown et al. 2013. An introduction to the grade of confidence used to characterize uncertainty around the WHO and UNICEF estimates of national immunization coverage}}
+        \end{sloppypar}
+\end{itemize}
+
+\vspace{0.5em}
+
+These talking points present the latest WUENIC estimates (published 15 July `r rev_yr+1`).
+
+\vspace{1.5em}
+
+\textcolor{cyan}{\fontsize{14}{16}\selectfont Definitions of immunization terms:}
+
+\vspace{0.5em}
+
+-   Bacillus Calmette-Guerin (BCG): vaccine against tuberculosis
+\vspace{0.5em}
+-   Hepatitis B birth dose, given within 24 hours after birth (HepBB)
+\vspace{0.5em}
+-   Diphtheria, tetanus, and pertussis vaccine, first dose (DTP1) and third dose (DTP3)
+\vspace{0.5em}
+-   Hepatitis B vaccine, third dose (HepB3)
+\vspace{0.5em}
+-   Haemophilus influenzae type B vaccine, third dose (Hib3)
+\vspace{0.5em}
+-   Poliomyelitis vaccine, third dose (Polio3)
+\vspace{0.5em}
+-   Inactivated polio vaccine, first dose (IPV1) and second dose (IPV2): second dose is only shown for oral polio vaccine (OPV) using countries
+\vspace{0.5em}
+-   Measles containing vaccine, first dose (MCV1) and second dose (MCV2)
+\vspace{0.5em}
+-   Rotavirus vaccine, last dose (RotaC)
+\vspace{0.5em}
+-   Pneumococcal vaccine, third dose (PCV3)
+\vspace{0.5em}
+-   Yellow Fever vaccine (YFV)
+\vspace{0.5em}
+-   Meningococcal A vaccine (MengA)
+\vspace{0.5em}
+-   Human Papillomavirus vaccine, first dose (HPV1) and last dose (HPVc)
+
+\vspace{1.5em}
+
+\textcolor{cyan}{\fontsize{14}{16}\selectfont Additional resources:} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
