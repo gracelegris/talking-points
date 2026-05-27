@@ -12,12 +12,13 @@ library(tidytext)
 comp_yr <- 2019
 
 ## setup ----
-source("unicef-products/main_vars.R")  # key vars
-source(str_glue("unicef-products/{type}/utils/R/label_vals.R"))  # labeling function
-source(str_glue("unicef-products/{type}/country-specific-talking-points/utils/user_profiles.R"))
+directory <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - 2025 rev/unicef-products")
+source(file.path(directory, "main_vars.R"))  # key vars
+source(str_glue("{directory}/{type}/utils/R/label_vals.R"))  # labeling function
+source(str_glue("{directory}/{type}/utils/user_profiles.R"))
 
 # wuenic data
-wuenic_dta <- read_rds(str_glue("unicef-products/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
+wuenic_dta <- read_rds(str_glue("{directory}/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
   #filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa")) %>% 
   filter(lvl_2 %in% c("region_unicef_ops")) %>% 
   filter(lvl_1 == "country") %>% 
@@ -42,7 +43,7 @@ wuenic_dta <- read_rds(str_glue("unicef-products/{type}/01_wuenic_dataset-prep/c
   rename(Region = lvl_3)
 
 # hpv data
-hpv_dta <- read_excel(str_glue('unicef-products/{type}/region-specific-talking-points/utils/hpv_estimates_wuenic{hpv_rev_yr}rev.xlsx')) %>%
+hpv_dta <- read_excel(file.path(directory, type, "utils", paste0("hpv_estimates_wuenic", hpv_rev_yr, "rev.xlsx"))) %>%
   #filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa")) %>% 
   filter(lvl_2 %in% c("region_unicef_ops")) %>% 
   filter(lvl_1 == "country") %>% 
@@ -61,10 +62,10 @@ hpv_dta <- read_excel(str_glue('unicef-products/{type}/region-specific-talking-p
   label_vals_millions(unvaccinated, "unvaccinated_lbl")
 
 # hpv vaccine intro years
-wiise_hpv_intro_yrs <- read_excel(str_glue("unicef-products/{type}/utils/wiise-hpv_intro_{rev_yr}rev.xlsx"))
+wiise_hpv_intro_yrs <- read_excel(file.path(directory, type, "utils", paste0("wiise-hpv_intro_", rev_yr, "rev.xlsx")))
 
 # base map
-base_map_df <- readRDS(str_glue('unicef-products/{type}/utils/unicef-base-map.rds')) %>% 
+base_map_df <- readRDS(file.path(directory, type, "utils", "unicef-base-map.rds")) %>% 
   sf::st_as_sf() %>% 
   mutate_at(vars(iso3c), str_to_lower) %>% 
   mutate(iso3c = case_when(
@@ -83,9 +84,9 @@ iso3cs <- unique(wuenic_dta$iso3c)
 for (country in countries) {
 
   message("Generating report for: ", country)
-  output_file <- str_glue("reports/Talking-points_{country}.pdf")
+  output_file <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports", paste0("Talking-points_", country, ".pdf"))
   
-  rmarkdown::render(str_glue("unicef-products/{type}/country-specific-talking-points/country_report_template.Rmd"),
+  rmarkdown::render(file.path(directory, type, "talking-points", "country-specific-talking-points", "country_report_template.Rmd"),
                     output_file = output_file,
                     params = list(country = country),
                     envir = new.env(), # ensure a clean environment
