@@ -674,8 +674,11 @@ all_vax_plot <- ggplot(all_vax_plot, aes(x = year, y = coverage, color = vaccine
   geom_line(size = 0.8, alpha = 0.7) +
   geom_point(size = 1.5, alpha = 0.7) +
   geom_hline(yintercept = 90, linetype = "dashed") +
-  geom_text(data = first_points, aes(label = vaccine, color = vaccine, face = "bold"),
-            hjust = 1.2, size = 2.5, show.legend = FALSE) +
+  ggrepel::geom_text_repel(
+    data = first_points, aes(label = vaccine, color = vaccine), fontface = "bold",
+    size = 2.5, show.legend = FALSE, direction = "y",
+    hjust = 1.2, nudge_x = -0.2, segment.color = NA
+  ) +
   scale_color_manual(values = vaccine_colors) +
   scale_x_continuous(breaks = seq(2000, rev_yr, 1), expand = expansion(add = c(2, 0.5))) +
   scale_y_continuous(limits = c(min_coverage - 5, 100), breaks = seq(0, 100, by = 10), name = "Coverage (%)") +

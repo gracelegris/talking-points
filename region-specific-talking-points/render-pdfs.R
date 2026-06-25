@@ -1,4 +1,4 @@
-
+# script to render region-level talking points reports and translate all to French, Spanish, Portuguese, and Arabic.
 rm(list = ls())
 
 library(tidyverse)
@@ -67,6 +67,11 @@ base_map_df <- readRDS(str_glue('unicef-products/{type}/utils/unicef-base-map.rd
 ## unique regions ----
 regions <- unique(wuenic_dta$Region) 
 
+# read in excel translation table
+translation_table <- read_csv(str_glue(directory, "/dummy/country-specific-charts/translation-table_charts_ctry.csv")) %>%
+  janitor::clean_names() %>%
+  mutate(key = tolower(key))
+
 ## render pdfs ----
 # Loop through regions and generate reports
 for (reg in regions) {
@@ -77,15 +82,28 @@ for (reg in regions) {
   } else {
     parent_reg <- "unicef"
   }
+  
+  languages <- c("en", "fr", "es", "pt", "ar")  # list of languages to render
 
-  output_file <- str_glue("reports/{parent_reg}/Talking-points_{reg}.pdf")
-  
-  rmarkdown::render(str_glue("unicef-products/{type}/region-specific-talking-points/wuenic_regional_talking_points_formatted.Rmd"),
-                    output_file = output_file,
-                    params = list(region = reg),
-                    envir = new.env())  # Ensure a clean environment
-  
-  message("Report generated: ", output_file)
+  for (language in languages) {
+    
+    message("Generating report for: ", country, " (Language: ", language, ")")
+    
+    output_file <- file.path(
+      directory, type, "talking-points/region-specific-talking-points/reports/translated", 
+      paste0("Talking-points_", reg, "_", language, ".pdf")
+    )
+    
+    rmarkdown::render(
+      str_glue("unicef-products/{type}/region-specific-talking-points/wuenic_regional_talking_points_formatted.Rmd"),
+      output_file = output_file,
+      params = list(region = reg, language = language), # pass region and language parameters into Rmd
+      envir = new.env(), 
+      quiet = TRUE
+    )
+    
+    message("Report generated: ", output_file)
+  }
 }
 
 message("All reports generated successfully!")
