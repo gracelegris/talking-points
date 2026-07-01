@@ -13,12 +13,13 @@ rev_yr <- 2025
 type <- "dummy"
 
 ## setup ----
-source(str_glue("unicef-products/{type}/utils/user_profiles.R"))
-source("unicef-products/main_vars.R")  # key vars
-source(str_glue("unicef-products/{type}/region-specific-talking-points/utils/label_vals.R"))  # labeling function
+RevDir <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - 2025 rev")
+source(str_glue(RevDir, "/unicef-products/{type}/utils/user_profiles.R"))
+source(str_glue(RevDir, "/unicef-products/main_vars.R"))  # key vars
+source(str_glue(RevDir, "/unicef-products/{type}/talking-points/region-specific-talking-points/utils/label_vals.R"))  # labeling function
 
 # wuenic data
-wuenic_dta <- read_rds(str_glue("unicef-products/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
+wuenic_dta <- read_rds(str_glue(RevDir, "/unicef-products/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
   filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa"),
          year >= 2000) %>%
   mutate(country = case_when(iso3c == "bol" ~ "Bolivia",
@@ -42,7 +43,7 @@ wuenic_dta <- read_rds(str_glue("unicef-products/{type}/01_wuenic_dataset-prep/c
   filter(Region %in% c("ROSA", "ESAR", "ECAR", "MENA", "LACR", "WCAR", "EAPR", "Non-programme"))
 
 # hpv data
-hpv_dta <- read_excel(str_glue('unicef-products/{type}/region-specific-talking-points/utils/hpv_estimates_wuenic{hpv_rev_yr}rev.xlsx')) %>%
+hpv_dta <- read_excel(str_glue(RevDir, '/unicef-products/{type}/talking-points/region-specific-talking-points/utils/hpv_estimates_wuenic{hpv_rev_yr}rev.xlsx')) %>%
   # programme coverage
   filter(vaccine_code %in% c("PRHPV1_F", "PRHPVC_F"),
          lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa")) %>%
@@ -57,10 +58,10 @@ hpv_dta <- read_excel(str_glue('unicef-products/{type}/region-specific-talking-p
   label_vals_millions(unvaccinated, "unvaccinated_lbl")
 
 # hpv vaccine intro years
-wiise_hpv_intro_yrs <- read_excel(str_glue("unicef-products/{type}/utils/wiise-hpv_intro_{rev_yr}rev.xlsx"))
+wiise_hpv_intro_yrs <- read_excel(str_glue(RevDir, "/unicef-products/{type}/utils/wiise-hpv_intro_{rev_yr}rev.xlsx"))
 
 # base map
-base_map_df <- readRDS(str_glue('unicef-products/{type}/utils/unicef-base-map.rds')) %>% 
+base_map_df <- readRDS(str_glue(RevDir, '/unicef-products/{type}/utils/unicef-base-map.rds')) %>% 
   sf::st_as_sf() %>% 
   mutate_at(vars(iso3c), str_to_lower)
 
@@ -83,11 +84,12 @@ for (reg in regions) {
     parent_reg <- "unicef"
   }
   
+  current_region <- reg
   languages <- c("en", "fr", "es", "pt", "ar")  # list of languages to render
 
   for (language in languages) {
     
-    message("Generating report for: ", country, " (Language: ", language, ")")
+    message("Generating report for: ", reg, " (Language: ", language, ")")
     
     output_file <- file.path(
       directory, type, "talking-points/region-specific-talking-points/reports/translated", 
@@ -95,7 +97,7 @@ for (reg in regions) {
     )
     
     rmarkdown::render(
-      str_glue("unicef-products/{type}/region-specific-talking-points/wuenic_regional_talking_points_formatted.Rmd"),
+      str_glue(RevDir, "/unicef-products/{type}/talking-points/region-specific-talking-points/wuenic_regional_tp_translated.Rmd"),
       output_file = output_file,
       params = list(region = reg, language = language), # pass region and language parameters into Rmd
       envir = new.env(), 
