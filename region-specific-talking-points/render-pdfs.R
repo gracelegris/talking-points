@@ -1,4 +1,5 @@
 # script to render region-level talking points reports and translate all to French, Spanish, Portuguese, and Arabic.
+
 rm(list = ls())
 library(tidyverse)
 library(knitr)
