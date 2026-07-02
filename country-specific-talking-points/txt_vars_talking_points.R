@@ -9,6 +9,7 @@ txt_ovw_vax_gt90         <- "Of the {n_vax_total} childhood vaccines tracked for
 txt_ovw_vax_none_gt90    <- "None of the {n_vax_total} childhood vaccines tracked for {the_ctry_name} achieved coverage of 90 per cent or higher in {rev_yr}."
 txt_ovw_dtp1_cvg         <- "Coverage of DTP1 {cvg_chng_dtp1}, DTP3 {cvg_chng_dtp3}, and MCV1 {cvg_chng_mcv1} in {rev_yr}."
 txt_ovw_zd_ia2030        <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff} per cent {zd_diff_txt} the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
+txt_contents <-  "Contents"
 
 # ── DTP1 ──────────────────────────────────────────────────────────────────────
 txt_dtp1_cvg_change      <- "In {rev_yr}, DTP1 coverage in {the_ctry_name} was {ctry_cvg_rev} per cent, compared to {ctry_cvg_comp} per cent in {comp_yr}."
@@ -19,7 +20,7 @@ txt_dtp1_dropout         <- "DTP1-to-DTP3 dropout in {rev_yr} was {dropout_pct} 
 txt_dtp1_change_summary <- "The number of children vaccinated with DTP1 {pchng_txt}."
 txt_dtp1_zd_ia2030_summary <- "In {rev_yr}, the number of zero-dose children ({estimate_lbl}) was approximately {pcnt_diff}% {diff_txt} the annual goal to achieve the Immunization Agenda 2030 target in {regn} region ({ia2030_lbl})."
 txt_dtp1_surviving_infants_summary <- "With {diff_abs_lbl} {moreless} surviving infants in the region compared to in {comp_yr}, {to_vax}."
-txt_dtp1_top2_zd_ctry_summary <- "In {rev_yr}, {n_ctry} countries, {ctry_list}, represented approximately {pct1}% and {pct2}% of all zero-dose children in {regn} (n = {total_zd}), respectively. {ctry1} had the highest number of zero-dose children at {n1}, and {ctry2} had the second highest at {n2}."
+txt_dtp1_top2_zd_ctry_summary <- "In {rev_yr}, {ctry_list} represented approximately {pct1}% and {pct2}% of all zero-dose children in {regn} (n = {total_zd}), respectively. {ctry1} had the highest number of zero-dose children at {n1}, and {ctry2} had the second highest at {n2}."
 txt_dtp1_lowest_coverage_summary <- "The lowest DTP1 coverage was observed in {ctry1} at {pct1}%, followed by {ctry2} at {pct2}%."
 txt_dtp1_change_summary <- "The number of children vaccinated with DTP1 {direction} {pchng}% from {comp_val} in {comp_yr} to {rev_val} in {rev_yr}."
 
@@ -157,8 +158,8 @@ txt_hpv_gt90_near_up <- "Despite the increase, {primary_hpv_label} coverage has 
 txt_hpv_gt90_near <- "Coverage of {primary_hpv_label} has not yet reached the 90% target."
 txt_hpv_gt90_achieved <- "Coverage of {primary_hpv_label} achieved the 90% target."
 txt_hpv_gt90_exceeded <- "Coverage of {primary_hpv_label} has exceeded the 90% target."
-txt_mcv_persistent_low_yes <- "{capital_the_name} has had MCV1 coverage below {thrshold}% for all of the last {nyrs} years"
-txt_mcv_persistent_low_no <- "{capital_the_name} has not had MCV1 coverage below {thrshold}% for any of the last {nyrs} years"
+txt_mcv_persistent_low_yes <- "{capital_the_name} has had MCV1 coverage below {thrshold}% for all of the last {nyrs} years."
+txt_mcv_persistent_low_no <- "{capital_the_name} has not had MCV1 coverage below {thrshold}% for any of the last {nyrs} years."
 txt_was_1_country <- "was {nctry_lt90} country"
 txt_were_n_countries <- "were {nctry_lt90} countries"
 txt_were_no_countries <- "were no countries"
@@ -203,9 +204,9 @@ txt_hpv_line_title_hpvc_unvac       <- "HPV1 and HPVc coverage and unvaccinated 
 
 txt_map_other_countries <- "Other countries"
 txt_plt_ovw_heatmap_title_vax <- "{toupper(v)} coverage, by country, {region_translated} Region, 2000-{rev_yr}"
-txt_plt_ovw_heatmap_caption_vax <- "{wuenic_src}\nNote: Countries ordered based on descending {toupper(v)} coverage in {rev_yr}."
+txt_plt_ovw_heatmap_caption_vax <- "Note: Countries ordered based on descending {toupper(v)} coverage in {rev_yr}."
 txt_map_coverage_title <- "{toupper(v)} coverage (%), {region_translated}, {rev_yr}"
-txt_map_disclaimer <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision.\nNote: This map is stylized and based on an approximate scale.This map does not reflect a position\nby UNICEF or WHO on the legal status of any country or territory or the delimitation of any frontiers."
+txt_map_disclaimer <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision.\nNote: This map is stylized and based on an approximate scale.This map does not reflect a position\nby UNICEF or WHO on the legal status of any country or\nterritory or the delimitation of any frontiers."
 txt_wuenic_source <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision."
 txt_were_n_countries_short <- "There were {n_gt90}"
 txt_dtp1_none_achieved <- "None of the {nctry} countries in {regn} achieved DTP1 coverage of 90% or higher in {rev_yr}."

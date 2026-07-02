@@ -833,15 +833,45 @@ cat("\\hypertarget{sec:dtp1}{}")
 cat("\\addcontentsline{toc}{section}{DTP1: Reaching zero-dose children}")
 ```
 
--   The number of children vaccinated with DTP1 `r unvac_v %>% filter(lvl_1 == 'region') %>% pull(pchng_txt)`.
+```{r, results='asis', echo=FALSE}
+cat(paste0("-   ", str_glue(
+  get_text2("txt_dtp3_change_summary", text_vars),
+  direction  = vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(pchng_txt),
+  pchng      = vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(pchng) %>% abs(),
+  comp_val   = vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(vacc_comp_yr_lbl),
+  comp_yr    = comp_yr,
+  rev_val    = vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(vacc_rev_yr_lbl),
+  rev_yr     = rev_yr,
+  pop_chng_txt = pop_chng_txt
+), "\n"))
 
--   In `r rev_yr`, the number of zero-dose children (`r txt_dta$Estimate_lbl`) was approximately `r txt_dta %>% pull(pcnt_diff) %>% abs()`% `r txt_dta %>% pull(diff_txt)` the annual goal to achieve the Immunization Agenda 2030 target in `r regn` region (`r txt_dta$IA2030_lbl`).
+cat(paste0("-   ", str_glue(
+  get_text2("txt_dtp3_dropout", text_vars),
+  rev_yr          = rev_yr,
+  dropout_pct     = dropout %>% filter(year == rev_yr) %>% pull(dropout),
+  dropout_diff_txt = dropout_comp %>% pull(diff_txt),
+  dropout_txt     = dropout %>% filter(year == rev_yr) %>% pull(dropout_txt)
+), "\n"))
 
--   With `r tgt %>% filter(lvl_1 == 'region') %>% pull(diff_abs_lbl)` `r tgt %>% filter(lvl_1 == 'region') %>% pull(moreless)` surviving infants in the region compared to in `r comp_yr`, `r tgt %>% filter(lvl_1 == 'region') %>% pull(to_vax)`. 
+cat(paste0("-   ", str_glue(
+  get_text2("txt_dtp3_coverage_range", text_vars),
+  rev_yr   = rev_yr,
+  min_pct  = min(cvg_v_no_nicaragua[[9]], na.rm = TRUE),
+  min_ctry = cvg_v_no_nicaragua %>% filter(.[[9]] == min(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words(),
+  max_pct  = max(cvg_v_no_nicaragua[[9]], na.rm = TRUE),
+  max_ctry = cvg_v_no_nicaragua %>% filter(.[[9]] == max(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words()
+), "\n"))
 
--   In `r rev_yr`, `r n_distinct(zd_ctry$iso3c)` countries, `r unique(zd_ctry$country) %>% knitr::combine_words()`, represented approximately `r zd_ctry %>% filter(rank == 1) %>% pull(unvac_ctry_pcnt)`% and `r zd_ctry %>% filter(rank == 2) %>% pull(unvac_ctry_pcnt)`% of all zero-dose children in `r params$region` (n = `r unvac_v %>% filter(lvl_1 == 'region') %>% pull(12)`), respectively. `r zd_ctry %>% filter(rank == 1) %>% pull(country)` had the highest number of zero-dose children at `r zd_ctry %>% filter(rank == 1) %>% pull(12)`, and `r zd_ctry %>% filter(rank == 2) %>% pull(country)` had the second highest at `r zd_ctry %>% filter(rank == 2) %>% pull(12)`. 
-
--   The lowest DTP1 coverage was observed in `r cvg_v_no_nicaragua %>% filter(rank == 1) %>% pull(country) %>% knitr::combine_words()` at `r cvg_v_no_nicaragua %>% filter(rank == 1) %>% pull(9) %>% unique()`%, followed by `r cvg_v_no_nicaragua %>% filter(rank == 2) %>% pull(country) %>% knitr::combine_words()` at `r cvg_v_no_nicaragua %>% filter(rank == 2) %>% pull(9) %>% unique()`%. 
+cat(paste0("-   ", str_glue(
+  get_text2("txt_dtp3_top2_unvac_summary", text_vars),
+  ctry1  = unvac_cvg %>% filter(rank == 1) %>% pull(country),
+  pct1   = unvac_cvg %>% filter(rank == 1) %>% pull(coverage) %>% unique(),
+  unvac1 = unvac_cvg %>% filter(rank == 1) %>% pull(unvaccinated_lbl) %>% unique(),
+  ctry2  = unvac_cvg %>% filter(rank == 2) %>% pull(country),
+  pct2   = unvac_cvg %>% filter(rank == 2) %>% pull(coverage),
+  unvac2 = unvac_cvg %>% filter(rank == 2) %>% pull(unvaccinated_lbl)
+), "\n"))
+```
 
 ```{r, results='asis', echo=FALSE}
 if (unique(cvg_v$n_gt90) == 0) {
@@ -878,7 +908,7 @@ print(line_plt_dtp1)
 v <- "dtp3"
 unvac_v <- unvac %>% filter(vaccine == v) 
 cvg_v   <- cvg %>% filter(vaccine == v)
-vacc_v  <- vacc %>% filter(vaccine == v)
+vaccinated_v  <- vacc %>% filter(vaccine == v)
 
 reg_cvg_rev_yr  <- cvg_v %>% filter(lvl_1 == "region") %>% pull(9)   
 reg_cvg_comp_yr <- cvg_v %>% filter(lvl_1 == "region") %>% pull(7) 
@@ -957,7 +987,7 @@ cat("\\addcontentsline{toc}{section}{DTP3: A marker of routine immunization serv
 
 \vspace{1em}
 
--   The number of children vaccinated with DTP3 `r vacc_v %>% filter(lvl_1 == 'region') %>% pull(pchng_txt)` from `r vacc_v %>% filter(lvl_1 == 'region') %>% pull(vacc_comp_yr_lbl)` in `r comp_yr` to `r vacc_v %>% filter(lvl_1 == 'region') %>% pull(vacc_rev_yr_lbl)` in `r rev_yr`. `r {pop_chng_txt}`
+-   The number of children vaccinated with DTP3 `r vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(pchng_txt)` from `r vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(vacc_comp_yr_lbl)` in `r comp_yr` to `r vaccinated_v %>% filter(lvl_1 == 'region') %>% pull(vacc_rev_yr_lbl)` in `r rev_yr`. `r {pop_chng_txt}`
 
 -   In `r rev_yr`, `r dropout %>% filter(year == rev_yr) %>% pull(dropout)`% of children who received DTP1 did not receive DTP3. DTP drop-out was `r dropout_comp %>% pull(diff_txt)`. The `r dropout %>% filter(year == rev_yr) %>% pull(dropout_txt)`. 
 

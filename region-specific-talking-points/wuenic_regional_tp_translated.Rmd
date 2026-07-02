@@ -99,6 +99,7 @@ cat(paste0('
 ```
 
 ```{r toc, echo=FALSE, results='asis'}
+cat(paste0("\\renewcommand{\\contentsname}{", get_text2("txt_contents", text_vars), "}"))
 cat("\\tableofcontents")
 ```
 
@@ -489,7 +490,7 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
     labs(
       x = '', y = '',
       title = heatmap_title,
-      caption = str_glue(get_text2("txt_plt_ovw_heatmap_caption_vax", text_vars), wuenic_src = wuenic_src, v_upper = toupper(v), rev_yr = rev_yr)
+      caption = str_glue(get_text2("txt_wuenic_source", text_vars), "\n", get_text2("txt_plt_ovw_heatmap_caption_vax", text_vars), v_upper = toupper(v), rev_yr = rev_yr)
     )
   assign(paste0("heatmap_", plt_df$vaccine, sep = ""), gg)
 }
@@ -533,7 +534,7 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
       scale_y_continuous(limits = c(0, 100), name = get_text2("txt_plt_cvg_pct", text_vars), sec.axis = sec_axis(~ . / scale_factor, name = count_label, labels = scales::label_comma())) +
       labs(
         title = str_glue(title_tpl, ctry_name = regn, rev_yr = rev_yr),
-        caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", wuenic_src),
+        caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
         x = get_text2("txt_plt_year", text_vars)
       ) +
       theme_unicef() + 

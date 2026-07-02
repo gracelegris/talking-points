@@ -6,6 +6,7 @@ USERNAME <- Sys.getenv("USER")
 
 # Load libraries
 library(tidyverse)
+library(glue)
 library(readxl)
 library(openxlsx)
 library(AzureAuth)
