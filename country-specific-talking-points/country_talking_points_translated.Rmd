@@ -1145,6 +1145,8 @@ if (has_hpv_data) {
         diff < 0 ~ get_text2("txt_vacc_decreased", text_vars), 
         TRUE ~ get_text2("txt_vacc_constant", text_vars)
       ),
+      rev_val = .data[[recent_col]],
+      minusone_val = .data[[minusone_col]],
       diff_txt = case_when(
         chng %in% c("increased", "decreased") ~ 
           str_glue(get_text2("txt_hpv_changed", text_vars), 
@@ -1534,28 +1536,33 @@ print(plt_reg_comp)
 add_vax <- c("bcg","hib3","hepb3","ipv1","pcvc","rotac")
 
 add_vax_df <- df %>%
-  filter(vaccine %in% add_vax, year %in% c(comp_yr, rev_yr)) %>%
+  filter(
+    vaccine %in% add_vax,
+    year %in% c(comp_yr, rev_yr)
+  ) %>%
   select(iso3c, country, vaccine, year, coverage) %>%
-  pivot_wider(names_from = year, values_from = coverage) %>%
-  filter(!is.na(.data[[comparison_col]]) | !is.na(.data[[recent_col]])) %>%
+  pivot_wider(
+    names_from = year,
+    values_from = coverage
+  ) %>%
   mutate(
-    diff      = .data[[recent_col]] - .data[[comparison_col]],
-    diff_txt  = case_when(
-      diff > 0  ~ str_glue(get_text2("txt_add_vax_increased", text_vars),
-                            cvg_comp = .data[[comparison_col]], cvg_rev = .data[[recent_col]]),
-      diff < 0  ~ str_glue(get_text2("txt_add_vax_decreased", text_vars),
-                            cvg_comp = .data[[comparison_col]], cvg_rev = .data[[recent_col]]),
-      diff == 0 ~ str_glue(get_text2("txt_add_vax_same",      text_vars),
-                            cvg_comp = .data[[comparison_col]]),
-      TRUE      ~ NA_character_),
     vaccine_label = case_when(
-      vaccine == "bcg"   ~ "BCG",   vaccine == "hib3"  ~ "Hib3",
-      vaccine == "hepb3" ~ "HepB3", vaccine == "ipv1"  ~ "IPV1",
-      vaccine == "pcvc"  ~ "PCV3",  vaccine == "rotac" ~ "RotaC",
-      TRUE ~ toupper(vaccine)),
-    gt90 = ifelse(.[[5]] >= 90,
-                  get_text2("txt_add_vax_above90",    text_vars),
-                  get_text2("txt_add_vax_not_above90", text_vars)))
+      vaccine == "bcg"   ~ "BCG",
+      vaccine == "hib3"  ~ "Hib3",
+      vaccine == "hepb3" ~ "HepB3",
+      vaccine == "ipv1"  ~ "IPV1",
+      vaccine == "pcvc"  ~ "PCV3",
+      vaccine == "rotac" ~ "RotaC",
+      TRUE ~ toupper(vaccine)
+    ),
+    diff    = .data[[recent_col]] - .data[[comparison_col]],
+    diff_txt = case_when(
+      diff > 0  ~ str_glue(get_text2("txt_add_vax_increased", text_vars), comp_val = .data[[comparison_col]], rev_val = .data[[recent_col]]),
+      diff < 0  ~ str_glue(get_text2("txt_add_vax_decreased", text_vars), comp_val = .data[[comparison_col]], rev_val = .data[[recent_col]]),
+      diff == 0 ~ str_glue(get_text2("txt_add_vax_same", text_vars), comp_val = .data[[comparison_col]], rev_val = .data[[recent_col]]),
+      TRUE      ~ NA_character_
+    )
+  )
 
 add_vax_heatmap_df <- df %>%
   filter(vaccine %in% add_vax, year >= 2000) %>%

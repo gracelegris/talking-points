@@ -328,8 +328,8 @@ txt_hpv_gt90_near_up          <- "HPVc coverage is approaching the IA2030 target
 txt_hpv_gt90_near             <- "HPVc coverage is approaching but has not yet reached the IA2030 target of 90%."
 txt_hpv_gt90_achieved         <- "HPVc coverage has reached the IA2030 target of 90%."
 txt_hpv_gt90_exceeded         <- "HPVc coverage has exceeded the IA2030 target of 90%."
-txt_hpv_changed               <- "{chng} from {.[[4]]}% in {hpv_rev_yr-1} to {.[[5]]}% in {hpv_rev_yr}"
-txt_hpv_constant              <- "{chng} at {.[[5]]}% between {hpv_rev_yr-1} and {hpv_rev_yr}"
+txt_hpv_changed               <- "{chng} from {minusone_val}% in {hpv_rev_yr-1} to {rev_val}% in {hpv_rev_yr}"
+txt_hpv_constant              <- "{chng} at {rev_val}% between {hpv_rev_yr-1} and {hpv_rev_yr}"
 
 # ── REGIONAL COMPARISON ───────────────────────────────────────────────────────
 txt_reg_comp_intro_has_hpvc   <- "The chart below shows how {the_ctry_name} compares to other countries in the {region_translated} region on DTP1, DTP3, MCV1, and HPVC coverage in {rev_yr}. The dashed line represents the regional average for each vaccine."
@@ -346,9 +346,9 @@ txt_add_vax_trend_constant    <- "Coverage of {vaccine_label} remained constant 
 txt_add_vax_target_met        <- "The 90% target was successfully achieved."
 txt_add_vax_target_missed     <- "This did not meet the 90% target."
 txt_add_vax_bullet            <- "{vaccine_label} coverage {diff_txt} and {gt90} the 90 per cent target in {rev_yr}."
-txt_add_vax_increased         <- "increased from {.[[4]]}% in {comp_yr} to {.[[5]]}% in {rev_yr}"
-txt_add_vax_decreased         <- "decreased from {.[[4]]}% in {comp_yr} to {.[[5]]}% in {rev_yr}"
-txt_add_vax_same              <- "remained the same ({.[[4]]}%) between {comp_yr} and {rev_yr}"
+txt_add_vax_increased         <- "increased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+txt_add_vax_decreased         <- "decreased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+txt_add_vax_same              <- "remained the same ({comp_val}%) between {comp_yr} and {rev_yr}"
 txt_add_vax_above90           <- "was above"
 txt_add_vax_not_above90       <- "was not above"
 
