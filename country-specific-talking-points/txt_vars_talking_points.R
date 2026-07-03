@@ -188,7 +188,7 @@ txt_plt_hpv_title_reg        <- "{hpv_vax_str}{hpv_unvac_str} over time, {region
 txt_plt_reg_comp_title   <- "Coverage comparison: {ctry_name} vs. {region} peers, {rev_yr}"
 txt_plt_add_vax_title    <- "Additional vaccine coverage (%), {ctry_name}, 2000–{rev_yr}"
 txt_plt_ovw_heatmap_title <- "Vaccine coverage (%), {ctry_name}, 2000–{rev_yr}"
-txt_plt_ovw_heatmap_title_reg <- "Vaccine coverage (%), {region_translated} Region, 2000–{rev_yr}"
+txt_plt_ovw_heatmap_title_reg <- "Vaccine coverage (%), {regn} Region, 2000–{rev_yr}"
 txt_plt_ovw_line_title   <- "Vaccine coverage over time, {ctry_name}, 2000–{rev_yr}"
 #txt_plt_hpv_both_unvac <- "HPV1 and HPVc coverage and unvaccinated females" 
 #txt_plt_hpv_title      <- "{regn} ({first_hpv_year}–{hpv_rev_yr}):{hpv_vax_str}{hpv_unvac_str} over time"

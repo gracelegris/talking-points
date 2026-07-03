@@ -2,6 +2,7 @@
 title: ""
 output:
   pdf_document:
+    keep_tex: false
     latex_engine: xelatex
     toc: false
     toc_depth: 3
@@ -9,7 +10,8 @@ geometry: "left=1cm,right=1cm,top=1.1cm,bottom=1.1cm"
 fontsize: 12pt
 params:
   region: "Default"
-  language: "default"
+  language: "en"
+  plot_language: "en"
 header-includes:
   - \usepackage{enumitem}
   - \geometry{a4paper, left=15mm, right=15mm, top=15mm, bottom=20mm}
@@ -45,8 +47,11 @@ options(scipen=999)
 source(file.path(RevDir, "/unicef-products/dummy/talking-points/country-specific-talking-points/txt_vars_talking_points.R"))        # loads text_vars_en
 source(file.path(utils, "R/narrative-translation_deepl.R"))    # loads text_vars (translated)
 
-current_region <- current_region
 language <- params$language
+
+comparison_col <- as.character(comp_yr)
+recent_col  <- as.character(rev_yr)
+minusone_col <- as.character(rev_yr - 1)
 
 # filter based on selected region
 df <- wuenic_dta %>% filter(Region == current_region) %>% 
@@ -151,7 +156,7 @@ world_map <- ggplot(map_df) +
   theme(legend.position = "none", 
         plot.title = element_markdown(hjust = 0.5, size = 14, face = "bold", color = "#1CABE2"),
         panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)) +
-  labs(title = str_glue(get_text2("txt_region_title", text_vars)))
+  labs(title = str_glue(get_text2("txt_region_title", plot_vars)))
 ```
 \vspace{-40pt}
 ```{r ggplot-country-map, echo=FALSE, warning=FALSE, fig.align='center'}
@@ -159,12 +164,6 @@ suppressMessages(print(world_map))
 ```
 \vspace{-60pt}
 - `r str_glue(get_text2("txt_region_includes_list", text_vars), region_translated = region_translated, n_ctry = length(ctry_list), ctry_list_txt = knitr::combine_words(ctry_list))`
-
-```{r nicaragua-note, echo=FALSE, results='asis'}
-if(regn == "LACR") {
-  cat(paste0("- ", get_text2("txt_nicaragua_note", text_vars)))
-}
-```
 
 ```{r setup-vax, include=FALSE}
 # number of countries in region
@@ -265,7 +264,7 @@ gt90_ctry <- df %>%
 
 # number of countries that did not achieve 90% coverage in a single vaccine
 nctry_lt90 <- gt90_ctry %>%
-  filter(country != "Nicaragua") %>% 
+  #filter(country != "Nicaragua") %>% 
   filter(ctry_anyvax_gt90 == 0) %>%
   summarise(count = n()) %>%
   pull(count) %>%
@@ -273,7 +272,7 @@ nctry_lt90 <- gt90_ctry %>%
 
 # Generate the list of failed countries ahead of time
 failed_countries_list <- gt90_ctry %>% 
-  filter(country != "Nicaragua") %>% 
+  #filter(country != "Nicaragua") %>% 
   filter(ctry_anyvax_gt90 == 0) %>% 
   pull(country) %>% 
   knitr::combine_words()
@@ -451,15 +450,15 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
     filter(vaccine == v) %>%
     mutate(country = ifelse(country == regn, paste0("**", country, "**"), country)) %>%
     left_join(position) %>%
-    distinct() %>% 
-    filter(country != "Nicaragua")
+    distinct()# %>% 
+    #filter(country != "Nicaragua")
   
   if(v == "dtp1") {
-    heatmap_title <- str_glue(get_text2("txt_dtp1_heatmap_title", text_vars))
+    heatmap_title <- str_glue(get_text2("txt_dtp1_heatmap_title", plot_vars))
   } else if(v == "dtp3") {
-    heatmap_title <- str_glue(get_text2("txt_dtp3_heatmap_title", text_vars))
+    heatmap_title <- str_glue(get_text2("txt_dtp3_heatmap_title", plot_vars))
   } else if(v == "mcv1") {
-    heatmap_title <- str_glue(get_text2("txt_mcv1_heatmap_title", text_vars))
+    heatmap_title <- str_glue(get_text2("txt_mcv1_heatmap_title", plot_vars))
   }
   
   gg <- plt_df %>%
@@ -475,7 +474,7 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
       colours = c('#B50800', '#E2231A', '#F26A21', '#FFC20E', '#80BD41', '#00833D'),
       values = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
       guide = "colorbar", limits = c(0, 100),
-      name = get_text2("txt_plt_cvg_pct_legend", text_vars),
+      name = get_text2("txt_plt_cvg_pct_legend", plot_vars),
       breaks = c(0, 59, 69, 79, 89, 100),
       labels = c("0", "60", "70", "80", "90", "100")
     ) +
@@ -502,17 +501,17 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
     plt_vax_df <- df %>% filter(country == regn, vaccine == v) %>% select(year, coverage, unvaccinated)
     
     if (v == "dtp1") {
-      vax_label  <- get_text2("txt_plt_dtp1_legend_cvg", text_vars)
-      count_label <- get_text2("txt_plt_dtp1_legend_zd", text_vars)
-      title_tpl   <- get_text2("txt_plt_dtp1_title", text_vars)
+      vax_label  <- get_text2("txt_plt_dtp1_legend_cvg", plot_vars)
+      count_label <- get_text2("txt_plt_dtp1_legend_zd", plot_vars)
+      title_tpl   <- get_text2("txt_plt_dtp1_title", plot_vars)
     } else if (v == "dtp3") {
-      vax_label  <- get_text2("txt_plt_dtp3_legend_cvg", text_vars)
-      count_label <- get_text2("txt_plt_unvac_undervac", text_vars)
-      title_tpl   <- get_text2("txt_plt_dtp3_title", text_vars)
+      vax_label  <- get_text2("txt_plt_dtp3_legend_cvg", plot_vars)
+      count_label <- get_text2("txt_plt_unvac_undervac", plot_vars)
+      title_tpl   <- get_text2("txt_plt_dtp3_title", plot_vars)
     } else if (v == "mcv1") {
-      vax_label  <- get_text2("txt_plt_mcv1_legend_cvg", text_vars)
-      count_label <- get_text2("txt_plt_mcv_legend_zd", text_vars)
-      title_tpl   <- get_text2("txt_plt_mcv_title", text_vars)
+      vax_label  <- get_text2("txt_plt_mcv1_legend_cvg", plot_vars)
+      count_label <- get_text2("txt_plt_mcv_legend_zd", plot_vars)
+      title_tpl   <- get_text2("txt_plt_mcv_title", plot_vars)
     }
     
     max_cvg <- max(plt_vax_df$coverage, na.rm = TRUE)
@@ -531,7 +530,7 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
       scale_fill_manual(name = NULL, values = fill_values, breaks = count_label) +
       guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
       scale_x_continuous(breaks = seq(2000, rev_yr, by = 2)) +
-      scale_y_continuous(limits = c(0, 100), name = get_text2("txt_plt_cvg_pct", text_vars), sec.axis = sec_axis(~ . / scale_factor, name = count_label, labels = scales::label_comma())) +
+      scale_y_continuous(limits = c(0, 100), name = get_text2("txt_plt_cvg_pct", plot_vars), sec.axis = sec_axis(~ . / scale_factor, name = count_label, labels = scales::label_comma())) +
       labs(
         title = str_glue(title_tpl, ctry_name = regn, rev_yr = rev_yr),
         caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
@@ -645,13 +644,13 @@ heatmap_reg <- heatmap_reg_df %>%
   geom_text(data = heatmap_reg_df %>% filter(coverage > 80 | coverage < 95), aes(label = paste0(as.character(coverage))), colour = 'black', vjust = 0.5, size = txt_size) +
   geom_text(data = heatmap_reg_df %>% filter(coverage <= 80 | coverage >= 95), aes(label = paste0(as.character(coverage))), colour = 'white', vjust = 0.5, size = txt_size) +
   labs(x = '', y = '', 
-       title = str_glue(get_text2("txt_plt_ovw_heatmap_title_reg", text_vars), regn = regn, min_yr = min(heatmap_reg_df$year), rev_yr = rev_yr), 
-       caption = str_glue(get_text2("txt_wuenic_source", text_vars))) +
+       title = str_glue(get_text2("txt_plt_ovw_heatmap_title_reg", plot_vars), regn = regn, min_yr = min(heatmap_reg_df$year), rev_yr = rev_yr), 
+       caption = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   scale_x_discrete(position = "top") + scale_y_discrete(limits=rev) +
   theme(strip.placement = "outside", panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.text.x = element_text(size = 12), legend.position="bottom", legend.key.width = unit(1.2, "cm"), plot.title = element_text(size = 14, hjust = 0.5, face = "bold")) +
   scale_fill_gradientn(
     colours = c('#B50800', '#E2231A', '#F26A21', '#FFC20E', '#80BD41', '#00833D'), values = scales::rescale(c(0,59,69,79,89,94, 100)),
-    guide = "colorbar", limits=c(0,100), name = get_text2("txt_plt_cvg_pct_legend", text_vars), breaks = c(0,59,69,79,89,100), labels = c("0", "60", "70", "80", "90", "100")
+    guide = "colorbar", limits=c(0,100), name = get_text2("txt_plt_cvg_pct_legend", plot_vars), breaks = c(0,59,69,79,89,100), labels = c("0", "60", "70", "80", "90", "100")
   )
 ```
 
@@ -670,9 +669,9 @@ all_vax_plot <- ggplot(all_vax_plot_df, aes(x = year, y = coverage, color = vacc
   geom_line(size = 0.8, alpha = 0.7) + geom_point(size = 1.5, alpha = 0.7) + geom_hline(yintercept = 90, linetype = "dashed") +
   ggrepel::geom_text_repel(data = first_points, aes(label = vaccine, color = vaccine), fontface = "bold", size = 2.5, show.legend = FALSE, direction = "y", hjust = 1.2, nudge_x = -0.2, segment.color = NA) +
   scale_color_manual(values = vaccine_colors) + scale_x_continuous(breaks = seq(2000, rev_yr, 1), expand = expansion(add = c(2, 0.5))) +
-  scale_y_continuous(limits = c(min_coverage - 5, 100), breaks = seq(0, 100, by = 10), name = get_text2("txt_plt_cvg_pct", text_vars)) +
+  scale_y_continuous(limits = c(min_coverage - 5, 100), breaks = seq(0, 100, by = 10), name = get_text2("txt_plt_cvg_pct", plot_vars)) +
   labs(
-    title = str_glue(get_text2("txt_plt_ovw_line_title", text_vars), ctry_name = regn, rev_yr = rev_yr), 
+    title = str_glue(get_text2("txt_plt_ovw_line_title", plot_vars), ctry_name = regn, rev_yr = rev_yr), 
      caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", glue(get_text2("txt_wuenic_source", text_vars))),
      x = NULL, color = NULL) +
   theme_unicef() +
@@ -707,15 +706,15 @@ for (v in c("dtp1","dtp3","mcv1")) {
   }
   
   plt_df <- plt_df %>%
-    mutate(cvg_cat = if_else(regn == "LACR" & admin == "Nicaragua", get_text2("txt_map_other_countries", text_vars), as.character(cvg_cat))) %>%
-    mutate(cvg_cat = factor(cvg_cat, levels = c('>=95', '90-94', '80-89', '70-79', '60-69', '<60', get_text2("txt_map_other_countries", text_vars))))
+    #mutate(cvg_cat = if_else(regn == "LACR" & admin == "Nicaragua", get_text2("txt_map_other_countries", text_vars), as.character(cvg_cat))) %>%
+    mutate(cvg_cat = factor(cvg_cat, levels = c('>=95', '90-94', '80-89', '70-79', '60-69', '<60', get_text2("txt_map_other_countries", plot_vars))))
   
   if(v == "dtp1") {
-    title_text <- str_glue(get_text2("txt_map_dtp1_title", text_vars))
+    title_text <- str_glue(get_text2("txt_map_dtp1_title", plot_vars))
   } else if(v == "dtp3") {
-    title_text <- str_glue(get_text2("txt_map_dtp3_title", text_vars))
+    title_text <- str_glue(get_text2("txt_map_dtp3_title", plot_vars))
   } else if(v == "mcv1") {
-    title_text <- str_glue(get_text2("txt_map_mcv1_title", text_vars))
+    title_text <- str_glue(get_text2("txt_map_mcv1_title", plot_vars))
   }
   
   gg <- ggplot() +
@@ -732,7 +731,7 @@ for (v in c("dtp1","dtp3","mcv1")) {
           plot.title = element_text(size = 14, hjust = 0.5, face = "bold"), 
           caption = element_text(size = 8, hjust = 0, vjust = 1)) +
     labs(title = title_text, 
-         caption = str_glue(get_text2("txt_map_disclaimer", text_vars)))
+         caption = str_glue(get_text2("txt_map_disclaimer", plot_vars)))
   assign(paste0("map_", v, sep = ""), gg)
 }
 ```
@@ -754,7 +753,7 @@ vaccinated_v <- vacc %>%
 cvg_v <- cvg %>% filter(vaccine == v)
 
 zd_ctry <- unvac_v %>%
-  filter(country != "Nicaragua") %>%
+  #filter(country != "Nicaragua") %>%
   arrange(desc(.[[9]])) %>%
   filter(lvl_1 == "country") %>%
   mutate(rank = seq(n())) %>%
@@ -780,7 +779,7 @@ cvg_v <- cvg %>%
            "")
   ))
 
-cvg_v_no_nicaragua <- cvg_v %>% filter(country != "Nicaragua")
+#cvg_v_no_nicaragua <- cvg_v %>% filter(country != "Nicaragua")
 ```
 
 \newpage
@@ -852,10 +851,10 @@ cat(paste0("-   ", str_glue(
 ```{r, results='asis', echo=FALSE}
 cat(paste0("-   ", str_glue(
   get_text2("txt_dtp1_lowest_coverage_summary", text_vars),
-  ctry1 = cvg_v_no_nicaragua %>% filter(rank == 1) %>% pull(country) %>% knitr::combine_words(),
-  pct1 = cvg_v_no_nicaragua %>% filter(rank == 1) %>% pull(9) %>% unique(),
-  ctry2 = cvg_v_no_nicaragua %>% filter(rank == 2) %>% pull(country) %>% knitr::combine_words(),
-  pct2 = cvg_v_no_nicaragua %>% filter(rank == 2) %>% pull(9) %>% unique()
+  ctry1 = cvg_v %>% filter(rank == 1) %>% pull(country) %>% knitr::combine_words(),
+  pct1 = cvg_v %>% filter(rank == 1) %>% pull(9) %>% unique(),
+  ctry2 = cvg_v %>% filter(rank == 2) %>% pull(country) %>% knitr::combine_words(),
+  pct2 = cvg_v %>% filter(rank == 2) %>% pull(9) %>% unique()
 ), "\n"))
 ```
 
@@ -901,7 +900,7 @@ reg_cvg_comp_yr <- cvg_v %>% filter(lvl_1 == "region") %>% pull(7)
 
 unvac_ctry <- unvac_v %>% arrange(desc(.[[9]])) %>% filter(lvl_1 == "country") %>% mutate(rank = seq(n())) %>% slice_max(order_by = .[[9]], n = 2)
 cvg_v <- cvg_v %>% filter(vaccine == v, lvl_1 == "country") %>% arrange(.[[9]]) %>% mutate(rank = dense_rank(.[[9]])) %>% mutate(gt90 = ifelse(.[[9]] >= 90, 1, 0), n_gt90 = sum(gt90)) 
-cvg_v_no_nicaragua <- cvg_v %>% filter(country != "Nicaragua")
+#cvg_v_no_nicaragua <- cvg_v %>% filter(country != "Nicaragua")
 
 tgt_chng <- tgt %>% filter(lvl_1 == "region") %>% mutate(pop_grwth = round((.[[9]] / .[[7]] - 1) * 100, 0)) %>% label_vals_millions(.[[9]], "tgt_rev_yr") %>% label_vals_millions(.[[7]], "tgt_comp_yr")
 
@@ -942,7 +941,7 @@ dropout_diff_txt <- str_glue(
 
 unvac_cvg <- unvac_v %>% arrange(desc(.[[9]])) %>% filter(lvl_1 == "country") %>% mutate(rank = seq(n())) %>% select(lvl_1:vaccine, rank, 9, 12) %>%
   rename_with(~"unvaccinated", .cols = 8) %>% rename_with(~"unvaccinated_lbl", .cols = 9) %>%
-  left_join(., cvg_v %>% select(iso3c, vaccine, 9), by = c("iso3c", "vaccine")) %>% rename_with(~"coverage", .cols = 10) %>% filter(country != "Nicaragua")
+  left_join(., cvg_v %>% select(iso3c, vaccine, 9), by = c("iso3c", "vaccine")) %>% rename_with(~"coverage", .cols = 10)# %>% filter(country != "Nicaragua")
 ```
 
 \newpage
@@ -995,10 +994,10 @@ cat(paste0("-   ", str_glue(
 cat(paste0("-   ", str_glue(
   get_text2("txt_dtp3_coverage_range", text_vars),
   rev_yr   = rev_yr,
-  min_pct  = min(cvg_v_no_nicaragua[[9]], na.rm = TRUE),
-  min_ctry = cvg_v_no_nicaragua %>% filter(.[[9]] == min(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words(),
-  max_pct  = max(cvg_v_no_nicaragua[[9]], na.rm = TRUE),
-  max_ctry = cvg_v_no_nicaragua %>% filter(.[[9]] == max(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words()
+  min_pct  = min(cvg_v[[9]], na.rm = TRUE),
+  min_ctry = cvg_v %>% filter(.[[9]] == min(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words(),
+  max_pct  = max(cvg_v[[9]], na.rm = TRUE),
+  max_ctry = cvg_v %>% filter(.[[9]] == max(.[[9]], na.rm = TRUE)) %>% pull(country) %>% knitr::combine_words()
 ), "\n"))
 ```
 
@@ -1063,7 +1062,8 @@ unvac_mcv <- unvac_v %>%
   label_vals_millions(diff, 'diff_lbl')
 
 unvac_ctry <- unvac_v %>%
-  filter(country != "Nicaragua", lvl_1 == "country", vaccine == "mcv1") %>%
+  #filter(country != "Nicaragua") %>% 
+  filter(lvl_1 == "country", vaccine == "mcv1") %>%
   arrange(desc(.[[9]])) %>%
   mutate(rank = seq(n())) %>%
   slice_max(order_by = .[[9]], n = 1)
@@ -1079,8 +1079,8 @@ cvg_trends <- df %>%
   mutate(sum = sum(ltx)) %>%
   ungroup() %>%
   select(iso3c, country, sum) %>%
-  distinct() %>%
-  filter(country != "Nicaragua")
+  distinct()# %>%
+  #filter(country != "Nicaragua")
 
 n_ctry_lower_x <- nrow(cvg_trends %>% filter(sum == nyrs))
 
@@ -1393,25 +1393,25 @@ if (has_hpv == 1) {
                                    fill = get_text2("txt_plt_unvac_females", text_vars)), alpha = 0.4, width = 0.6) +
   {if (nrow(plot_hpv1) > 1) 
     list(
-      geom_line(data=plot_hpv1, aes(x=year, y=coverage, color=get_text2("txt_plt_hpv1_legend_cvg", text_vars)), size=1.5, alpha = 0.7),
-      geom_point(data=plot_hpv1, aes(x=year, y=coverage, color=get_text2("txt_plt_hpv1_legend_cvg", text_vars)), size=3, alpha = 0.7))} +
+      geom_line(data=plot_hpv1, aes(x=year, y=coverage, color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
+      geom_point(data=plot_hpv1, aes(x=year, y=coverage, color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=3, alpha = 0.7))} +
   {if (nrow(plot_hpvc) > 1) 
-    list(geom_line(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", text_vars)), size=1.5, alpha = 0.7),
-         geom_point(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", text_vars)), size=3, alpha = 0.7)) 
-    else list(geom_point(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", text_vars)), size=3, alpha = 0.7))} +
+    list(geom_line(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
+         geom_point(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=3, alpha = 0.7)) 
+    else list(geom_point(data=plot_hpvc, aes(x=year, y=coverage, color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=3, alpha = 0.7))} +
     geom_hline(yintercept = 90, linetype = "dashed", alpha = 0.7) +
-  scale_color_manual(name = NULL, values = setNames(c("#1CABE2", "#6A1E72"), c(get_text2("txt_plt_hpv1_legend_cvg", text_vars), get_text2("txt_plt_hpvc_legend_cvg", text_vars)))) +
-  scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_unvac_females", text_vars))) +
+  scale_color_manual(name = NULL, values = setNames(c("#1CABE2", "#6A1E72"), c(get_text2("txt_plt_hpv1_legend_cvg", plot_vars), get_text2("txt_plt_hpvc_legend_cvg", plot_vars)))) +
+  scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_unvac_females", plot_vars))) +
   scale_x_continuous(breaks = seq(min(plot_hpvc$year), max(plot_hpvc$year), by = 1)) +
   scale_y_continuous(limits = c(0, 100), 
-                     name = get_text2("txt_plt_cvg_pct", text_vars), 
-                     sec.axis = sec_axis(~ . / hpv_scale_factor, name = paste0(get_text2("txt_plt_unvac_females", text_vars)), 
+                     name = get_text2("txt_plt_cvg_pct", plot_vars), 
+                     sec.axis = sec_axis(~ . / hpv_scale_factor, name = paste0(get_text2("txt_plt_unvac_females", plot_vars)), 
                                          labels = scales::label_comma())) +
   guides(color = guide_legend(order = 1, nrow = 1),
          fill = guide_legend(order = 2, nrow = 1)) +
   labs(title = hpv_line_plot_title,
        caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", str_glue(get_text2("txt_wuenic_source", text_vars))), 
-       x = get_text2("txt_plt_year", text_vars)) +
+       x = get_text2("txt_plt_year", plot_vars)) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(), 
         panel.grid.major.x = element_line(color = "grey90"), 
@@ -1570,16 +1570,16 @@ if (n_bcu_ctry > 0) {
     select(country, iso3c, `2019`, `2024`, pandemic_effect, recovery_status) %>%
     mutate(
       recovery_label = case_when(
-        recovery_status == "recovered"     ~ get_text2("txt_bcu_lbl_recovered", text_vars),
-        recovery_status == "recovering"    ~ get_text2("txt_bcu_lbl_recovering", text_vars),
-        recovery_status == "not recovered" ~ get_text2("txt_bcu_lbl_not_recovered", text_vars)
+        recovery_status == "recovered"     ~ get_text2("txt_bcu_lbl_recovered", plot_vars),
+        recovery_status == "recovering"    ~ get_text2("txt_bcu_lbl_recovering", plot_vars),
+        recovery_status == "not recovered" ~ get_text2("txt_bcu_lbl_not_recovered", plot_vars)
       ),
       country = fct_reorder(country, `2024`)
     )
 
   status_colors <- setNames(
     c("#00833D", "#80BD41", "#E2231A"),
-    c(get_text2("txt_bcu_lbl_recovered", text_vars), get_text2("txt_bcu_lbl_recovering", text_vars), get_text2("txt_bcu_lbl_not_recovered", text_vars))
+    c(get_text2("txt_bcu_lbl_recovered", plot_vars), get_text2("txt_bcu_lbl_recovering", plot_vars), get_text2("txt_bcu_lbl_not_recovered", plot_vars))
   )
 
   gg_bcu <- ggplot(bcu_plot_df) +
@@ -1587,21 +1587,21 @@ if (n_bcu_ctry > 0) {
   geom_point(aes(x = `2019`, y = country), shape = 21, fill = "white", color = "grey40", size = 2.5) +
   geom_point(aes(x = `2024`, y = country, color = recovery_label), size = 3) +
   geom_vline(xintercept = 90, linetype = "dashed", color = "grey40", alpha = 0.7) +
-  scale_color_manual(name = get_text2("txt_bcu_plot_status_name", text_vars), values = status_colors) +
+  scale_color_manual(name = get_text2("txt_bcu_plot_status_name", plot_vars), values = status_colors) +
   scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 20), labels = function(x) paste0(x, "%")) +
   facet_wrap(
     ~ fct_relevel(recovery_label,
-                  get_text2("txt_bcu_lbl_recovered", text_vars),
-                  get_text2("txt_bcu_lbl_recovering", text_vars),
-                  get_text2("txt_bcu_lbl_not_recovered", text_vars)),
+                  get_text2("txt_bcu_lbl_recovered", plot_vars),
+                  get_text2("txt_bcu_lbl_recovering", plot_vars),
+                  get_text2("txt_bcu_lbl_not_recovered", plot_vars)),
     ncol   = 1,
     scales = "free_y",
     labeller = labeller(recovery_label = label_wrap_gen(width = 20))
   ) +
   labs(
-    title   = str_glue(get_text2("txt_plt_bcu_title", text_vars), regn = regn),
-    subtitle = get_text2("txt_plt_bcu_subtitle", text_vars),
-    x       = get_text2("txt_plt_bcu_xaxis", text_vars),
+    title   = str_glue(get_text2("txt_plt_bcu_title", plot_vars), regn = regn),
+    subtitle = get_text2("txt_plt_bcu_subtitle", plot_vars),
+    x       = get_text2("txt_plt_bcu_xaxis", plot_vars),
     y       = NULL,
     caption = paste0(str_glue(get_text2("txt_plt_bcu_caption", text_vars), regn = regn), "\n", str_glue(get_text2("txt_wuenic_source", text_vars)))
   ) +

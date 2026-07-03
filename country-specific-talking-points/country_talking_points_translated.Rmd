@@ -3,7 +3,6 @@ title: ""
 output:
   pdf_document:
     keep_tex: false
-    #self_contained: true
     latex_engine: xelatex
     toc: false
     toc_depth: 3
@@ -12,6 +11,7 @@ fontsize: 12pt
 params:
   country: "Default"
   language: "en"
+  plot_language: "en" # so we can make arabic plot labels english
 header-includes:
   - \usepackage{enumitem}
   - \geometry{a4paper, left=15mm, right=15mm, top=15mm, bottom=20mm}
@@ -213,7 +213,7 @@ country_map <- ggplot(map_df) +
         plot.title  = element_markdown(hjust = 0.5, size = 14, face = "bold"),
         panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)) +
   labs(title = str_glue(
-    get_text2("txt_map_title_full", text_vars),
+    get_text2("txt_map_title_full", plot_vars),
     ctry_name          = ctry_name,
     region_for_country = region_for_country
   ))
@@ -438,8 +438,8 @@ heatmap_overview <- heatmap_ovw_df %>%
   geom_tile(color = "white") +
   geom_text(aes(label = coverage), colour = "white", vjust = 0.5, size = 3) +
   labs(x = "", y = "",
-       title   = str_glue(get_text2("txt_plt_ovw_heatmap_title", text_vars)),
-       caption = str_glue(get_text2("txt_wuenic_source", text_vars))) +
+       title   = str_glue(get_text2("txt_plt_ovw_heatmap_title", plot_vars)),
+       caption = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   scale_x_discrete(position = "top") +
   scale_y_discrete(limits = rev) +
   theme_minimal() +
@@ -451,7 +451,7 @@ heatmap_overview <- heatmap_ovw_df %>%
     colours = c("#B50800","#E2231A","#F26A21","#FFC20E","#80BD41","#00833D"),
     values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
     guide   = "colorbar", limits = c(0, 100),
-    name    = get_text2("txt_plt_cvg_pct_legend", text_vars),
+    name    = get_text2("txt_plt_cvg_pct_legend", plot_vars),
     breaks  = c(0, 59, 69, 79, 89, 100),
     labels  = c("0", "60", "70", "80", "90", "100"))
 ```
@@ -489,11 +489,11 @@ all_vax_line_plot <- ggplot(all_vax_plot,
                      expand    = expansion(add = c(2, 0.5))) +
   scale_y_continuous(limits = c(min_coverage - 5, 100),
                      breaks = seq(0, 100, by = 10),
-                     name   = get_text2("txt_plt_cvg_pct", text_vars)) +
-  labs(title   = str_glue(get_text2("txt_plt_ovw_line_title", text_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars),
-                        "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
-       x       = get_text2("txt_plt_year", text_vars),
+                     name   = get_text2("txt_plt_cvg_pct", plot_vars)) +
+  labs(title   = str_glue(get_text2("txt_plt_ovw_line_title", plot_vars)),
+       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars),
+                        "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x       = get_text2("txt_plt_year", plot_vars),
        color   = NULL) +
   theme_unicef() +
   theme(panel.grid.minor  = element_blank(),
@@ -647,34 +647,34 @@ scale_factor <- max(plot_dtp1$coverage, na.rm = TRUE) /
 dtp_plot <- ggplot() +
   geom_col(data = plot_zd_dtp,
            aes(x = year, y = unvaccinated * scale_factor,
-               fill = get_text2("txt_plt_dtp1_legend_zd", text_vars)),
+               fill = get_text2("txt_plt_dtp1_legend_zd", plot_vars)),
            alpha = 0.4, width = 0.6) +
   geom_line(data  = plot_dtp1,
             aes(x = year, y = coverage,
-                color = get_text2("txt_plt_dtp1_legend_cvg", text_vars)),
+                color = get_text2("txt_plt_dtp1_legend_cvg", plot_vars)),
             size = 1.5) +
   geom_point(data = plot_dtp1,
              aes(x = year, y = coverage,
-                 color = get_text2("txt_plt_dtp1_legend_cvg", text_vars)),
+                 color = get_text2("txt_plt_dtp1_legend_cvg", plot_vars)),
              size = 3) +
   geom_hline(yintercept = 90, linetype = "dashed") +
   scale_color_manual(name   = NULL,
                      values = setNames("#1CABE2",
-                       get_text2("txt_plt_dtp1_legend_cvg", text_vars))) +
+                       get_text2("txt_plt_dtp1_legend_cvg", plot_vars))) +
   scale_fill_manual(name   = NULL,
                     values = setNames("#E2231A",
-                      get_text2("txt_plt_dtp1_legend_zd", text_vars))) +
+                      get_text2("txt_plt_dtp1_legend_zd", plot_vars))) +
   scale_x_continuous(breaks = seq(min(plot_dtp1$year), max(plot_dtp1$year), 1)) +
   scale_y_continuous(
     limits = c(0, 100),
-    name   = get_text2("txt_plt_cvg_pct", text_vars),
+    name   = get_text2("txt_plt_cvg_pct", plot_vars),
     sec.axis = sec_axis(~ . / scale_factor,
-                        name   = get_text2("txt_plt_zd_children", text_vars),
+                        name   = get_text2("txt_plt_zd_children", plot_vars),
                         labels = scales::label_comma())) +
-  labs(title   = str_glue(get_text2("txt_plt_dtp1_title",      text_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption",     text_vars),
-                        "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
-       x       = get_text2("txt_plt_year", text_vars)) +
+  labs(title   = str_glue(get_text2("txt_plt_dtp1_title",      plot_vars)),
+       caption = paste0(get_text2("txt_plt_ia2030_caption",     plot_vars),
+                        "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x       = get_text2("txt_plt_year", plot_vars)) +
   guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
   theme_unicef() +
   theme(panel.grid.minor   = element_blank(),
@@ -806,34 +806,34 @@ scale_factor <- max(plot_dtp3$coverage, na.rm = TRUE) /
 dtp3_plot <- ggplot() +
   geom_col(data = plot_zd_dtp,
            aes(x = year, y = unvaccinated * scale_factor,
-               fill = get_text2("txt_plt_dtp3_legend_unvac", text_vars)),
+               fill = get_text2("txt_plt_dtp3_legend_unvac", plot_vars)),
            alpha = 0.4, width = 0.6) +
   geom_line(data  = plot_dtp3,
             aes(x = year, y = coverage,
-                color = get_text2("txt_plt_dtp3_legend_cvg", text_vars)),
+                color = get_text2("txt_plt_dtp3_legend_cvg", plot_vars)),
             size = 1.5) +
   geom_point(data = plot_dtp3,
              aes(x = year, y = coverage,
-                 color = get_text2("txt_plt_dtp3_legend_cvg", text_vars)),
+                 color = get_text2("txt_plt_dtp3_legend_cvg", plot_vars)),
              size = 3) +
   geom_hline(yintercept = 90, linetype = "dashed") +
   scale_color_manual(name   = NULL,
                      values = setNames("#1CABE2",
-                       get_text2("txt_plt_dtp3_legend_cvg", text_vars))) +
+                       get_text2("txt_plt_dtp3_legend_cvg", plot_vars))) +
   scale_fill_manual(name   = NULL,
                     values = setNames("#E2231A",
-                      get_text2("txt_plt_dtp3_legend_unvac", text_vars))) +
+                      get_text2("txt_plt_dtp3_legend_unvac", plot_vars))) +
   scale_x_continuous(breaks = seq(min(plot_dtp3$year), max(plot_dtp3$year), 1)) +
   scale_y_continuous(
     limits   = c(0, 100),
-    name     = get_text2("txt_plt_cvg_pct", text_vars),
+    name     = get_text2("txt_plt_cvg_pct", plot_vars),
     sec.axis = sec_axis(~ . / scale_factor,
-                        name   = get_text2("txt_plt_unvac_undervac", text_vars),
+                        name   = get_text2("txt_plt_unvac_undervac", plot_vars),
                         labels = scales::label_comma())) +
-  labs(title   = str_glue(get_text2("txt_plt_dtp3_title",  text_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars),
-                        "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
-       x       = get_text2("txt_plt_year", text_vars),
+  labs(title   = str_glue(get_text2("txt_plt_dtp3_title",  plot_vars)),
+       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars),
+                        "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x       = get_text2("txt_plt_year", plot_vars),
        color   = NULL) +
   theme_unicef() +
   theme(panel.grid.minor   = element_blank(),
@@ -1024,46 +1024,46 @@ scale_factor <- max(plot_mcv1$coverage, na.rm = TRUE) /
 mcv_plot <- ggplot() +
   geom_col(data = plot_zd_mcv,
            aes(x = year, y = unvaccinated * scale_factor,
-               fill = get_text2("txt_plt_mcv_legend_zd", text_vars)),
+               fill = get_text2("txt_plt_mcv_legend_zd", plot_vars)),
            alpha = 0.4, width = 0.6) +
   geom_line(data  = plot_mcv1,
             aes(x = year, y = coverage,
-                color = get_text2("txt_plt_mcv1_legend_cvg", text_vars)),
+                color = get_text2("txt_plt_mcv1_legend_cvg", plot_vars)),
             size = 1.5) +
   geom_point(data = plot_mcv1,
              aes(x = year, y = coverage,
-                 color = get_text2("txt_plt_mcv1_legend_cvg", text_vars)),
+                 color = get_text2("txt_plt_mcv1_legend_cvg", plot_vars)),
              size = 3) +
   { if ("mcv2" %in% available_vaccines) list(
       geom_line(data  = plot_mcv2,
                 aes(x = year, y = coverage,
-                    color = get_text2("txt_plt_mcv2_legend_cvg", text_vars)),
+                    color = get_text2("txt_plt_mcv2_legend_cvg", plot_vars)),
                 size = 1.5),
       geom_point(data = plot_mcv2,
                  aes(x = year, y = coverage,
-                     color = get_text2("txt_plt_mcv2_legend_cvg", text_vars)),
+                     color = get_text2("txt_plt_mcv2_legend_cvg", plot_vars)),
                  size = 3)) } +
   geom_hline(yintercept = 90, linetype = "dashed") +
   scale_color_manual(name   = NULL,
                      values = setNames(
                        c("#1CABE2", "#6A1E74"),
-                       c(get_text2("txt_plt_mcv1_legend_cvg", text_vars),
-                         get_text2("txt_plt_mcv2_legend_cvg", text_vars)))) +
+                       c(get_text2("txt_plt_mcv1_legend_cvg", plot_vars),
+                         get_text2("txt_plt_mcv2_legend_cvg", plot_vars)))) +
   scale_fill_manual(name   = NULL,
                     values = setNames("#E2231A",
-                      get_text2("txt_plt_mcv_legend_zd", text_vars))) +
+                      get_text2("txt_plt_mcv_legend_zd", plot_vars))) +
   scale_x_continuous(breaks = seq(min(plot_mcv1$year), max(plot_mcv1$year), 1)) +
   scale_y_continuous(
     limits   = c(0, 100),
-    name     = get_text2("txt_plt_cvg_pct", text_vars),
+    name     = get_text2("txt_plt_cvg_pct", plot_vars),
     sec.axis = sec_axis(~ . / scale_factor,
-                        name   = get_text2("txt_plt_mcv_legend_zd", text_vars),
+                        name   = get_text2("txt_plt_mcv_legend_zd", plot_vars),
                         labels = scales::label_comma())) +
   guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
-  labs(title   = str_glue(get_text2("txt_plt_mcv_title", text_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars),
-                        "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
-       x = get_text2("txt_plt_year", text_vars)) +
+  labs(title   = str_glue(get_text2("txt_plt_mcv_title", plot_vars)),
+       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars),
+                        "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x = get_text2("txt_plt_year", plot_vars)) +
   theme_unicef() +
   theme(panel.grid.minor   = element_blank(),
         panel.grid.major.x = element_line(),
@@ -1250,65 +1250,65 @@ if (has_hpv_data) {
     { if (has_hpv1 && nrow(plot_hpv1) > 1) list(
         geom_line(data = plot_hpv1,
                   aes(x = year, y = coverage,
-                      color = get_text2("txt_plt_hpv1_legend_cvg", text_vars)),
+                      color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
                   size = 1.5),
         geom_point(data = plot_hpv1,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpv1_legend_cvg", text_vars)),
+                       color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
                    size = 3))
       else if (has_hpv1 && nrow(plot_hpv1) == 1)
         geom_point(data = plot_hpv1,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpv1_legend_cvg", text_vars)),
+                       color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
                    size = 3) } +
     { if (has_hpvc && nrow(plot_hpvc) > 1) list(
         geom_line(data = plot_hpvc,
                   aes(x = year, y = coverage,
-                      color = get_text2("txt_plt_hpvc_legend_cvg", text_vars)),
+                      color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
                   size = 1.5),
         geom_point(data = plot_hpvc,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpvc_legend_cvg", text_vars)),
+                       color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
                    size = 3))
       else if (has_hpvc && nrow(plot_hpvc) == 1)
         geom_point(data = plot_hpvc,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpvc_legend_cvg", text_vars)),
+                       color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
                    size = 3) } +
     { if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1)
         geom_col(data = plot_zd_hpv,
                  aes(x = year, y = unvaccinated * hpv_scale_factor,
-                     fill = get_text2("txt_plt_hpv_legend_unvac", text_vars)),
+                     fill = get_text2("txt_plt_hpv_legend_unvac", plot_vars)),
                  alpha = 0.4, width = 0.6) } +
     geom_hline(yintercept = 90, linetype = "dashed") +
     scale_color_manual(name   = NULL,
                        values = setNames(
                          c("#1CABE2", "#6A1E72"),
-                         c(get_text2("txt_plt_hpv1_legend_cvg", text_vars),
-                           get_text2("txt_plt_hpvc_legend_cvg", text_vars)))) +
+                         c(get_text2("txt_plt_hpv1_legend_cvg", plot_vars),
+                           get_text2("txt_plt_hpvc_legend_cvg", plot_vars)))) +
     scale_fill_manual(name   = NULL,
                       values = setNames("#E2231A",
-                        get_text2("txt_plt_hpv_legend_unvac", text_vars))) +
+                        get_text2("txt_plt_hpv_legend_unvac", plot_vars))) +
     scale_x_continuous(breaks = seq(min(plot_hpv_ref$year),
                                     max(plot_hpv_ref$year), 1)) +
     { if (has_hpv_num_unvac)
         scale_y_continuous(limits = c(0, 100),
-                           name   = get_text2("txt_plt_cvg_pct", text_vars),
+                           name   = get_text2("txt_plt_cvg_pct", plot_vars),
                            sec.axis = sec_axis(~ . / hpv_scale_factor,
-                             name   = get_text2("txt_plt_unvac_females", text_vars),
+                             name   = get_text2("txt_plt_unvac_females", plot_vars),
                              labels = scales::label_comma()))
       else
         scale_y_continuous(limits = c(0, 100),
-                           name   = get_text2("txt_plt_cvg_pct", text_vars)) } +
+                           name   = get_text2("txt_plt_cvg_pct", plot_vars)) } +
     { if (has_hpv_num_unvac)
         guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) } +
-    labs(title = str_glue(get_text2(title_key, text_vars), ctry_name = ctry_name, first_hpv_year = first_hpv_year, hpv_rev_yr = hpv_rev_yr),
+    labs(title = str_glue(get_text2(title_key, plot_vars), ctry_name = ctry_name, first_hpv_year = first_hpv_year, hpv_rev_yr = hpv_rev_yr),
          caption = paste0(
-           get_text2("txt_plt_ia2030_caption", text_vars), "\n",
-           if (!has_hpvc)         paste0(get_text2("txt_hpv_no_hpvc_caption",  text_vars), "\n") else "",
-           if (!has_hpv_num_unvac) paste0(get_text2("txt_hpv_no_unvac_caption", text_vars), "\n") else "",
-           str_glue(get_text2("txt_wuenic_source", text_vars))),
-         x = get_text2("txt_plt_year", text_vars),
+           get_text2("txt_plt_ia2030_caption", plot_vars), "\n",
+           if (!has_hpvc)         paste0(get_text2("txt_hpv_no_hpvc_caption",  plot_vars), "\n") else "",
+           if (!has_hpv_num_unvac) paste0(get_text2("txt_hpv_no_unvac_caption", plot_vars), "\n") else "",
+           str_glue(get_text2("txt_wuenic_source", plot_vars))),
+         x = get_text2("txt_plt_year", plot_vars),
          color = NULL) +
     theme_unicef() +
     theme(panel.grid.minor   = element_blank(),
@@ -1473,11 +1473,11 @@ plt_reg_comp <- reg_comp %>%
     labels = legend_labels,
     name = ""
   ) +
-  labs(x        = get_text2("txt_plt_cvg_pct", text_vars),
+  labs(x        = get_text2("txt_plt_cvg_pct", plot_vars),
        y        = "",
-       title    = str_glue(get_text2("txt_plt_reg_comp_title", text_vars)),
-       subtitle = get_text2("txt_plt_reg_comp_subtitle", text_vars),
-       caption  = str_glue(get_text2("txt_wuenic_source", text_vars))) +
+       title    = str_glue(get_text2("txt_plt_reg_comp_title", plot_vars)),
+       subtitle = get_text2("txt_plt_reg_comp_subtitle", plot_vars),
+       caption  = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   theme_unicef() +
   theme(legend.position  = "bottom",
         strip.text       = element_text(face = "bold"),
@@ -1578,8 +1578,8 @@ plt_add_vax <- add_vax_heatmap_df %>%
   geom_text(aes(label = coverage), colour = "white", size = 3) +
   labs(x       = "",
        y       = "",
-       title   = str_glue(get_text2("txt_plt_add_vax_title", text_vars)),
-       caption = str_glue(get_text2("txt_wuenic_source", text_vars))) +
+       title   = str_glue(get_text2("txt_plt_add_vax_title", plot_vars)),
+       caption = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   scale_x_discrete(position = "top") +
   scale_y_discrete(limits = rev) +
   theme_minimal() +
@@ -1592,7 +1592,7 @@ plt_add_vax <- add_vax_heatmap_df %>%
     colours = c("#B50800","#E2231A","#F26A21","#FFC20E","#80BD41","#00833D"),
     values  = scales::rescale(c(0, 59, 69, 79, 89, 94, 100)),
     guide   = "colorbar", limits = c(0, 100),
-    name    = get_text2("txt_plt_cvg_pct_legend", text_vars),
+    name    = get_text2("txt_plt_cvg_pct_legend", plot_vars),
     breaks  = c(0, 59, 69, 79, 89, 100),
     labels  = c("0", "60", "70", "80", "90", "100"))
 ```
