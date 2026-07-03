@@ -11,12 +11,32 @@ library(patchwork)
 comp_yr <- 2019
 rev_yr <- 2025
 type <- "dummy" 
+pct_threshold <- 0.10
+min_yr_plots  <- 2010
+n_years_comparison_plot <- 5
 
-## setup ----
-directory <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - 2025 rev/unicef-products")
+## ── PATHS ───────────────────────────────────────────────────────────────────
+directory <- file.path(RevDir, "unicef-products")
+utils      <- str_glue(RevDir, "/unicef-products/{type}/utils")
+wrkfolder  <- str_glue(RevDir, "/unicef-products/{type}/country-specific-charts")
+wiisefolder <- str_glue(RevDir, "/unicef-products/{type}/wiise-outputs")
+dqfolder   <- str_glue(RevDir, "/unicef-products/{type}/data-quality/DQProduct")
+SubnatFuncDir <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - Subnational data analysis/utils/R")
+DataDir <- str_glue(dqfolder, "/data")
+ppt_script_path <- file.path(dqfolder, "DQ_ppt_compile_translate.R")
+
 source(file.path(directory, type, "utils/user_profiles.R"))
 source(file.path(directory, "main_vars.R")) # key vars
-source(file.path(directory, type, "talking-points/region-specific-talking-points/utils/label_vals.R")) # labeling function
+source(file.path(dqfolder, "R/label_vals.R"))
+source(file.path(dqfolder, "R/funcs.R"))
+source(str_glue("{utils}/R/slide_general_funcs.R"))    # func_slide_v, func_slide_bb, etc.
+source(str_glue("{utils}/R/slide_production_funcs.R")) # func_slide_v_txt, func_slide_v_tlm, etc.
+source(file.path(directory, str_glue("{type}/utils/R/slide_production_generic_text.R")))
+
+## ── LOAD DATA ────────────────────────────────────────────────────────────────
+source(file.path(dqfolder, "load_data.R"))
+
+source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate" = "#80BD41", "Survey" = "#FFC20E")
 
 # wuenic data
 wuenic_dta <- read_rds(file.path(directory, type, paste0("01_wuenic_dataset-prep/clean_wuenic_MASTER_", rev_yr, "rev.rds"))) %>%
