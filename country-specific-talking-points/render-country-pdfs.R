@@ -48,7 +48,6 @@ source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate
 wuenic_dta <- read_rds(str_glue("{directory}/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
   #filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa")) %>% 
   filter(lvl_2 %in% c("region_unicef_ops")) %>% 
-  filter(lvl_1 == "country") %>% 
   filter(year >= 2000) %>%
   mutate(country = case_when(iso3c == "bol" ~ "Bolivia",
                              # iso3c == "caf" ~ "CAR",
@@ -122,63 +121,9 @@ list_ar <- language_list %>% filter(language == "ar") %>% filter(iso3c %in% iso_
 translation_table <- read_csv(str_glue(directory, "/dummy/country-specific-charts/translation-table_charts_ctry.csv")) %>%
   janitor::clean_names() %>%
   mutate(key = tolower(key))
-
-## render pdfs ----
-# loop through regions and generate reports
-# for (country in countries) {
-#   
-#   current_country <- country
-#   x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
-#   
-#   # determine languages to produce (skipping arabic for now)
-#   if (x %in% list_fr) {
-#     languages <- c("en", "fr")
-#   } else if (x %in% list_es) {
-#     languages <- c("en", "es")
-#   } else if (x %in% list_pt) {
-#     languages <- c("en", "pt")
-#   } else {
-#     languages <- "en"
-#   }
-#   
-#   for (language in languages) {
-#     
-#     message("Generating report for: ", country, " (Language: ", language, ")")
-#     
-#     # path for standard reports folder
-#     final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports", 
-#                                    paste0(x, "_talking_points_", language, ".pdf"))
-#     
-#     # path for final country folder
-#     country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x, 
-#                                      paste0(x, "_talking_points_", language, ".pdf"))
-#     
-#     # temp file
-#     pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
-#     temp_output_path <- file.path(tempdir(), pdf_filename)
-#     
-#     # render to temp folder
-#     rmarkdown::render(
-#       input = file.path(directory, "dummy/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
-#       output_file = temp_output_path,
-#       params = list(country = current_country, language = language), 
-#       envir = new.env(), 
-#       quiet = TRUE
-#     )
-#     
-#     dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
-#     dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
-#     
-#     # copy only PDF to final destinations
-#     file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
-#     file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
-#     
-#     # clean up temp file
-#     unlink(temp_output_path)
-#     
-#     message("Reports successfully saved to target destinations for ", x, " (", language, ")")
-#   }
-# }
+translation_table_general <- read_csv(str_glue(directory, "/draft/utils/translation_table_general.csv")) %>%
+  janitor::clean_names() %>%
+  mutate(key = tolower(key))
 
 # new loop that translates plot labels separately 
 # plot labels english if language is arabic, otherwise match the report language
@@ -187,8 +132,7 @@ for (country in countries) {
   current_country <- country
   x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
   
-  # 1. ADD ARABIC BACK TO THE LANGUAGE ROUTING LOOP
-  # If the country's ISO3C code matches your Arabic tracking list, generate EN and AR
+  # select languages
   if (x %in% list_ar) {
     languages <- c("en", "ar")
   } else if (x %in% list_fr) {
@@ -205,8 +149,7 @@ for (country in countries) {
     
     message("Generating report for: ", country, " (Language: ", language, ")")
     
-    # 2. DETERMINE THE PLOT LANGUAGE RULES
-    # If the report is in Arabic, hardcode plot labels to English. Otherwise, match the report.
+    # if the report is in Arabic, hardcode plot labels to English. Otherwise, match the report
     plot_lang <- if (language == "ar") "en" else language
     
     final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports", 
@@ -218,15 +161,15 @@ for (country in countries) {
     pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
     temp_output_path <- file.path(tempdir(), pdf_filename)
     
-    # 3. PASS PLOT_LANGUAGE DOWN VIA THE PARAMS LIST
-    rmarkdown::render(
+    # pass plot_language in using the params list
+    suppressWarnings(rmarkdown::render(
       input = file.path(directory, "dummy/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
       output_file = temp_output_path,
-      # Pass both the text engine language and the graphic engine language
+      # pass both the regular text language and the plot language (english when main language is arabic)
       params = list(country = current_country, language = language, plot_language = plot_lang), 
       envir = new.env(), 
       quiet = TRUE
-    )
+    ))
     
     dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
     dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
@@ -236,8 +179,8 @@ for (country in countries) {
     
     unlink(temp_output_path)
     
-    message("Reports successfully saved to target destinations for ", x, " (", language, ")")
+    message("✅ Reports successfully saved to target destinations for ", x, " (", language, ")")
   }
 }
 
-message("All reports generated successfully!")
+message("✅ All reports generated successfully!")

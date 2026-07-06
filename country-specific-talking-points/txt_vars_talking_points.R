@@ -7,7 +7,7 @@
 # ── OVERVIEW ──────────────────────────────────────────────────────────────────
 txt_ovw_vax_gt90         <- "Of the {n_vax_total} childhood vaccines tracked for {the_ctry_name}, {n_vax_gt90} achieved coverage of 90 per cent or higher in {rev_yr}."
 txt_ovw_vax_none_gt90    <- "None of the {n_vax_total} childhood vaccines tracked for {the_ctry_name} achieved coverage of 90 per cent or higher in {rev_yr}."
-txt_ovw_dtp1_cvg         <- "Coverage of DTP1 {cvg_chng_dtp1}, DTP3 {cvg_chng_dtp3}, and MCV1 {cvg_chng_mcv1} in {rev_yr}."
+txt_ovw_dtp1_cvg         <- "Coverage of the first dose of diphtheria-tetanus-pertussis-containing vaccine (DTP1) {cvg_chng_dtp1}, third dose of DTP-containing vaccine (DTP3) {cvg_chng_dtp3}, and first dose of the measles-containing vaccine (MCV1) {cvg_chng_mcv1} in {rev_yr}."
 txt_ovw_zd_ia2030        <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff} per cent {zd_diff_txt} the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
 txt_contents <-  "Contents"
 
@@ -37,7 +37,7 @@ txt_dtp3_top2_unvac_summary <- "{ctry1} had DTP3 coverage of {pct1}% and the hig
 
 # ── MCV ───────────────────────────────────────────────────────────────────────
 txt_mcv1_cvg_change      <- "MCV1 coverage in {rev_yr} ({mcv1_cvg_rev} per cent) {cvg_chng_txt}."
-txt_mcv2_cvg_change      <- "MCV2 coverage {cvg_chng_txt}. This leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
+txt_mcv2_cvg_change      <- "Coverage of the second dose of measles-containing vaccine (MCV2) {cvg_chng_txt}. This leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
 txt_mcv_dropout          <- "In {rev_yr}, {dropout_pct} per cent of children who received DTP1 did not receive MCV1. DTP-MCV dropout was {dropout_diff_txt}. {dropout_txt}"
 txt_mcv_persistent_low   <- "{persistent_low_txt}."
 txt_mcv_reg_rank         <- "Among {ctry_regn} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in MCV1 coverage in {rev_yr}."

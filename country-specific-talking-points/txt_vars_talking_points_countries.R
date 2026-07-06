@@ -113,9 +113,9 @@ txt_general_dropout_diff_same <- "the same as in {comp_yr}"
 # 
 # # ── POPULATION CONTEXT ────────────────────────────────────────────────────────
 # txt_pop_growth_context   <- "Due to population growth of approximately {pop_grwth}% between {comp_yr} and {rev_yr}, DTP3 coverage in {rev_yr} ({ctry_cvg_rev_dtp3}%) was lower than in {comp_yr} ({ctry_cvg_comp_dtp3}%)."
-txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
-txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
-txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
+#txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
+#txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
+#txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
 # 
 # # ── PLOT LABELS ───────────────────────────────────────────────────────────────
 # txt_plt_dtp1_title       <- "DTP1 coverage and zero-dose children\nover time, {ctry_name}, 2000–{rev_yr}"
@@ -185,11 +185,13 @@ txt_plt_hpv1_only <- "HPV1 coverage"
 # ── OVERVIEW ──────────────────────────────────────────────────────────────────
 txt_ovw_vax_gt90              <- "A total of {n_vax_total} childhood vaccines are tracked for {the_ctry_name}; of these, {n_vax_gt90} reached the 90% coverage target or higher in {rev_yr}."
 txt_ovw_vax_none_gt90         <- "None of the {n_vax_total} childhood vaccines tracked for {the_ctry_name} achieved coverage of 90% or higher in {rev_yr}."
-txt_ovw_dtp1_cvg              <- "Coverage of DTP1 {cvg_chng_dtp1}, DTP3 {cvg_chng_dtp3}, and MCV1 {cvg_chng_mcv1}."
-txt_ovw_zd_ia2030             <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% {zd_diff_txt} the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
-txt_ovw_zd_ia2030_higher      <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% higher than the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
-txt_ovw_zd_ia2030_lower       <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% lower than the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
-txt_ovw_zd_ia2030_same        <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately the same as the annual goal to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl})."
+txt_ovw_dtp1_cvg         <- "Coverage of the first dose of diphtheria-tetanus-pertussis-containing vaccine (DTP1) {cvg_chng_dtp1}, coverage of the third dose of DTP-containing vaccine (DTP3) {cvg_chng_dtp3}, and coverage of the first dose of the measles-containing vaccine (MCV1) {cvg_chng_mcv1} in {rev_yr}."
+
+
+txt_ovw_zd_ia2030             <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% {zd_diff_txt} the annual number proposed to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl}), based on a linear trajectory of decline."
+txt_ovw_zd_ia2030_higher      <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% higher than the annual number proposed to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl}), based on a linear trajectory of decline."
+txt_ovw_zd_ia2030_lower       <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% lower than the annual number proposed to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl}), based on a linear trajectory of decline."
+txt_ovw_zd_ia2030_same        <- "In {rev_yr}, the number of zero-dose children for DTP in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately the same as the annual number proposed to achieve the IA2030 target of halving zero-dose children for DTP by 2030 ({ia2030_rev_yr_lbl}), based on a linear trajectory of decline."
 txt_ovw_vax_gt90_summary      <- "While noting variations across countries and vaccines, {n_achieved_txt} of the {n_vax} childhood vaccines achieved an average coverage of 90% or higher within the {region_translated} region in {rev_yr}."
 txt_ovw_coverage_change_summary <- "Coverage of the first dose of diphtheria-tetanus-pertussis-containing vaccine (DTP1) {dtp1_diff}, and the third dose of DTP-containing vaccine (DTP3) {dtp3_diff}. Coverage of the first dose of the vaccine against measles (MCV1) {mcv1_diff}."
 txt_ovw_zero_dose_summary     <- "In {rev_yr}, the number of zero-dose children ({estimate_lbl}) was approximately {pcnt_diff}% {diff_txt} the annual goal to achieve the Immunization Agenda 2030 target of reducing the number of zero-dose children by half by 2030 in {region_translated} region ({ia2030_lbl})."
@@ -211,16 +213,37 @@ txt_map_other_countries       <- "Other countries"
 txt_region_includes_list      <- "The {region_translated} region includes the following {n_ctry} countries: {ctry_list_txt}."
 txt_region_banner_title       <- "WUENIC Talking Points: {region_translated} Region ({regn})"
 txt_region_title              <- "Countries in {region_translated} Region"
+txt_ia2030_zd_proj_bar_line_y <- "# zero-dose children"
+txt_ia2030_zd_proj_bar_line_title <- "Estimated number of zero-dose children,\n{min_yr_plots}–{rev_yr} and target by 2030, {the_ctry_name}"
+txt_ia2030_zd_proj_bar_line_cpt <- "Note: The Immunization Agenda 2030 (IA2030) calls on all countries to reduce the number of zero-dose children in 2019 in half by 2030.\nDark blue bars are the estimated number of zero-dose children in {min_yr_plots}–{rev_yr}, light blue bar is the target number of zero-dose children by 2030.\nThe line and points show the yearly progress and trajectory to meet the target by 2030, based on a linear decline."
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# generic coverage comparison strings to use as the first bullet for all vaccines
+# If it increased compared to comp_yr...
+txt_vax_inc_inc  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is higher than in {comp_yr} ({ctry_cvg_comp}%) and higher than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_inc_dec  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is higher than in {comp_yr} ({ctry_cvg_comp}%) and lower than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_inc_same <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is higher than in {comp_yr} ({ctry_cvg_comp}%) and the same as in {minusone_col} ({ctry_cvg_minusone}%)."
+
+# If it decreased compared to comp_yr...
+txt_vax_dec_inc  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is lower than in {comp_yr} ({ctry_cvg_comp}%) and higher than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_dec_dec  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is lower than in {comp_yr} ({ctry_cvg_comp}%) and lower than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_dec_same <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is lower than in {comp_yr} ({ctry_cvg_comp}%) and the same as in {minusone_col} ({ctry_cvg_minusone}%)."
+
+# If it stayed the same compared to comp_yr...
+txt_vax_sam_inc  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is the same as in {comp_yr} ({ctry_cvg_comp}%) and higher than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_sam_dec  <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is the same as in {comp_yr} ({ctry_cvg_comp}%) and lower than in {minusone_col} ({ctry_cvg_minusone}%)."
+txt_vax_sam_same <- "Coverage of {vax} stood at {ctry_cvg_rev}% in {rev_yr}. This is the same as in {comp_yr} ({ctry_cvg_comp}%) and the same as in {minusone_col} ({ctry_cvg_minusone}%)."
 
 # ── DTP1 ──────────────────────────────────────────────────────────────────────
 txt_dtp1_cvg_change           <- "In {rev_yr}, DTP1 coverage in {the_ctry_name} was {ctry_cvg_rev}%, compared to {ctry_cvg_comp}% in {comp_yr}."
 txt_dtp1_zd_ia2030            <- "In {rev_yr}, the number of zero-dose children in {the_ctry_name} ({zd_rev_yr_lbl}) was approximately {abs_zd_pcnt_diff}% {zd_diff_txt} the annual IA2030 target ({ia2030_rev_yr_lbl})."
-txt_dtp1_reg_rank             <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in DTP1 coverage in {rev_yr} ({ctry_cvg_rev}% vs. regional peers)."
+#txt_dtp1_reg_rank             <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in DTP1 coverage in {rev_yr} ({ctry_cvg_rev}% vs. regional peers)."
 txt_dtp1_dropout              <- "DTP1-to-DTP3 dropout in {rev_yr} was {dropout_pct}%, {dropout_diff_txt}. {dropout_txt}"
 txt_dtp1_negative_dropout     <- "DTP3 coverage surpassed DTP1 coverage by {abs_dropout_pct} percentage points in {rev_yr}, which was {dropout_diff_txt}."
-txt_dtp1_surviving_infants_more  <- "There were {diff_abs_lbl} more surviving infants in the region in {rev_yr} compared to in {comp_yr}. {to_vax}"
-txt_dtp1_surviving_infants_fewer <- "There were {diff_abs_lbl} fewer surviving infants in the region in {rev_yr} compared to in {comp_yr}. {to_vax}"
-txt_dtp1_surviving_infants_same  <- "There was no change in the number of surviving infants in the region in {rev_yr} compared to {comp_yr}. {to_vax}"
+#txt_dtp1_surviving_infants_more  <- "There were {diff_abs_lbl} more surviving infants in the region in {rev_yr} compared to in {comp_yr}. {to_vax}"
+#txt_dtp1_surviving_infants_fewer <- "There were {diff_abs_lbl} fewer surviving infants in the region in {rev_yr} compared to in {comp_yr}. {to_vax}"
+#txt_dtp1_surviving_infants_same  <- "There was no change in the number of surviving infants in the region in {rev_yr} compared to {comp_yr}. {to_vax}"
 txt_dtp1_change_summary       <- "The number of children vaccinated with DTP1 {direction} {pchng}% from {comp_val} in {comp_yr} to {rev_val} in {rev_yr}."
 txt_dtp1_zd_ia2030_summary    <- "In {rev_yr}, the number of zero-dose children ({estimate_lbl}) was approximately {pcnt_diff}% {diff_txt} the annual goal to achieve the Immunization Agenda 2030 target in {regn} region ({ia2030_lbl})."
 txt_dtp1_surviving_infants_summary <- "With {diff_abs_lbl} {moreless} surviving infants in the region compared to in {comp_yr}, {to_vax}."
@@ -229,38 +252,54 @@ txt_dtp1_lowest_coverage_summary <- "The lowest DTP1 coverage was observed in {c
 txt_dtp1_none_achieved        <- "None of the {nctry} countries in {regn} achieved DTP1 coverage of 90% or higher in {rev_yr}."
 txt_dtp1_share_achieved       <- "{n_gt90_txt} ({pct}%) out of {nctry} countries in the region that achieved DTP1 coverage of 90% or higher in {rev_yr}{gt90_txt}."
 
+txt_cvg_higher_than_regional_avg <- "Coverage of {vax} in {the_ctry_name} ({ctry_cvg_rev}%) was higher than the {region_translated} regional average of {reg_avg_cvg}% in {rev_yr}."
+txt_cvg_lower_than_regional_avg  <- "Coverage of {vax} in {the_ctry_name} ({ctry_cvg_rev}%) was lower than the {region_translated} regional average of {reg_avg_cvg}% in {rev_yr}."
+txt_cvg_same_as_regional_avg     <- "Coverage of {vax} in {the_ctry_name} ({ctry_cvg_rev}%) was the same as the {region_translated} regional average of {reg_avg_cvg}% in {rev_yr}."
+
 # ── DTP3 ──────────────────────────────────────────────────────────────────────
-txt_dtp3_vaccinated_increased <- "The number of children vaccinated with DTP3 increased from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}. In {rev_yr}, DTP3 coverage in {the_ctry_name} was {ctry_cvg_rev_dtp3}%, compared to {ctry_cvg_comp_dtp3}% in {comp_yr}. {pop_chng_txt}"
-txt_dtp3_vaccinated_decreased <- "The number of children vaccinated with DTP3 decreased from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}. In {rev_yr}, DTP3 coverage in {the_ctry_name} was {ctry_cvg_rev_dtp3}%, compared to {ctry_cvg_comp_dtp3}% in {comp_yr}. {pop_chng_txt}"
-txt_dtp3_vaccinated_unchanged <- "The number of children vaccinated with DTP3 remained unchanged from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}. In {rev_yr}, DTP3 coverage in {the_ctry_name} was {ctry_cvg_rev_dtp3}%, compared to {ctry_cvg_comp_dtp3}% in {comp_yr}. {pop_chng_txt}"
-txt_dtp3_dropout              <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3. This {dropout_pct}% dropout rate was {dropout_diff_txt}. {dropout_txt}"
-txt_dtp3_negative_dropout     <- "In {rev_yr}, DTP3 coverage surpassed DTP1 coverage by {abs_dropout_pct} percentage points. The DTP series dropout rate was {dropout_diff_txt}."
-txt_dtp3_unvac                <- "In {rev_yr}, DTP3 coverage in {the_ctry_name} was {ctry_cvg_rev_dtp3}%, leaving {unvac_dtp3_lbl} children un- or under-vaccinated."
-txt_dtp3_reg_rank             <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in DTP3 coverage in {rev_yr}."
+txt_dtp3_vaccinated_increased <- "The number of children vaccinated with DTP3 increased from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}."
+txt_dtp3_vaccinated_decreased <- "The number of children vaccinated with DTP3 decreased from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}."
+txt_dtp3_vaccinated_unchanged <- "The number of children vaccinated with DTP3 remained unchanged from {vacc_comp_yr_lbl} in {comp_yr} to {vacc_rev_yr_lbl} in {rev_yr}."
+#txt_dtp3_dropout              <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3. This {dropout_pct}% dropout rate was {dropout_diff_txt}. {dropout_txt}"
+#txt_dtp3_negative_dropout     <- "In {rev_yr}, DTP3 coverage surpassed DTP1 coverage by {abs_dropout_pct} percentage points. The DTP series dropout rate was {dropout_diff_txt}."
+txt_dtp3_unvac                <- "In {rev_yr}, there were {unvac_dtp3_lbl} children un- or under-vaccinated in {the_ctry_name}."
+#txt_dtp3_reg_rank             <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in DTP3 coverage in {rev_yr}."
 txt_dtp3_change_summary       <- "The number of children vaccinated with DTP3 {direction} {pchng}% from {comp_val} in {comp_yr} to {rev_val} in {rev_yr}. {pop_chng_txt}"
 txt_dtp3_coverage_range       <- "In {rev_yr}, DTP3 coverage ranged from {min_pct}% in {min_ctry} to {max_pct}% in {max_ctry}."
 txt_dtp3_top2_unvac_summary   <- "{ctry1} had DTP3 coverage of {pct1}% and the highest absolute number of un- and undervaccinated children in the region ({unvac1}), followed by {ctry2} with {pct2}% coverage and {unvac2} un- and undervaccinated children."
 
 # ── DTP1-DTP3 DROPOUT ────────────────────────────────────────────────────────
-txt_dtp3_dropout_low    <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; low dropout rates imply good ability to provide a complete series of vaccines early in life."
-txt_dtp3_dropout_medium <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; medium dropout rates imply moderate ability to provide a complete series of vaccines early in life."
-txt_dtp3_dropout_high   <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; high dropout rates imply poor ability to provide a complete series of vaccines early in life."
-txt_dtp3_diff_higher_1  <- "1 percentage point higher than in {comp_yr} ({comp_pct}%)"
-txt_dtp3_diff_higher_pp <- "{diff} percentage points higher than in {comp_yr} ({comp_pct}%)"
-txt_dtp3_diff_lower_1   <- "1 percentage point lower than in {comp_yr} ({comp_pct}%)"
-txt_dtp3_diff_lower_pp  <- "{diff} percentage points lower than in {comp_yr} ({comp_pct}%)"
-txt_dtp3_diff_same      <- "the same as in {comp_yr} ({comp_pct}%)"
+# txt_dtp3_dropout_low    <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; low dropout rates imply good ability to provide a complete series of vaccines early in life."
+# txt_dtp3_dropout_medium <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; medium dropout rates imply moderate ability to provide a complete series of vaccines early in life."
+# txt_dtp3_dropout_high   <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive DTP3, which was {dropout_diff_txt}; high dropout rates imply poor ability to provide a complete series of vaccines early in life."
+# txt_dtp3_diff_higher_1  <- "1 percentage point higher than in {comp_yr} ({comp_pct}%)"
+# txt_dtp3_diff_higher_pp <- "{diff} percentage points higher than in {comp_yr} ({comp_pct}%)"
+# txt_dtp3_diff_lower_1   <- "1 percentage point lower than in {comp_yr} ({comp_pct}%)"
+# txt_dtp3_diff_lower_pp  <- "{diff} percentage points lower than in {comp_yr} ({comp_pct}%)"
+# txt_dtp3_diff_same      <- "the same as in {comp_yr} ({comp_pct}%)"
+
+# --- DTP1-DTP3 and DTP1-MCV1 DROPOUT STRINGS
+txt_dropout_lower_lower   <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points lower than in {comp_yr} ({comp_pct}%) and {diff_minusone} percentage points lower than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_lower_higher  <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points lower than in {comp_yr} ({comp_pct}%) but {diff_minusone} percentage points higher than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_lower_same    <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points lower than in {comp_yr} ({comp_pct}%) and the same as the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_higher_lower  <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points higher than in {comp_yr} ({comp_pct}%) but {diff_minusone} percentage points lower than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_higher_higher <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points higher than in {comp_yr} ({comp_pct}%) and {diff_minusone} percentage points higher than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_higher_same   <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was {diff_comp} percentage points higher than in {comp_yr} ({comp_pct}%) and the same as the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_same_lower    <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was the same as in {comp_yr} ({comp_pct}%) but {diff_minusone} percentage points lower than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_same_higher   <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was the same as in {comp_yr} ({comp_pct}%) but {diff_minusone} percentage points higher than the {minusone_col} dropout rate ({minusone_pct}%)."
+txt_dropout_same_same     <- "In {rev_yr}, {dropout_pct}% of children who received {vax1} did not receive {vax2}. This {dropout_pct}% dropout rate was the same as in {comp_yr} ({comp_pct}%) and the same as the {minusone_col} dropout rate ({minusone_pct}%)."
+
 
 # ── MCV ──────────────────────────────────────────────────────────────────────
 txt_mcv1_cvg_change           <- "MCV1 coverage {cvg_chng_txt}."
-txt_mcv2_cvg_change_decreased           <- "MCV2 coverage {cvg_chng_txt}. This leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
-txt_mcv2_cvg_change_increased           <- "MCV2 coverage {cvg_chng_txt}. This still leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
+txt_mcv2_cvg_change_decreased           <- "Coverage of the second dose of the measles-containing vaccine (MCV2) {cvg_chng_txt}. This leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
+txt_mcv2_cvg_change_increased           <- "Coverage of the second dose of the measles-containing vaccine (MCV2) {cvg_chng_txt}. This still leaves {mcv1_unvac_lbl} children without any protection against measles and another {mcv_diff_lbl} with only partial protection."
 
 txt_mcv_dropout               <- "In {rev_yr}, {dropout_pct}% of children who received DTP1 did not receive MCV1. DTP-MCV dropout was {dropout_diff_txt}. {dropout_txt}"
 txt_mcv_negative_dropout      <- "In {rev_yr}, MCV1 coverage surpassed DTP1 coverage by {abs_dropout_pct} percentage points. This {dropout_pct}% DTP-MCV dropout rate was {dropout_diff_txt}."
 txt_mcv_persistent_low        <- "{persistent_low_txt}."
 txt_mcv_persistent_low_yes    <- "{capital_the_name} has had MCV1 coverage below {thrshold}% for all of the last {nyrs} years."
-txt_mcv_persistent_low_no     <- "{capital_the_name} has not had MCV1 coverage below {thrshold}% for any of the last {nyrs} years."
+txt_mcv_persistent_low_no     <- "{capital_the_name} has achieved MCV1 coverage above {thrshold}% over all of the last {nyrs} years."
 txt_mcv_reg_rank              <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers} countries in MCV1 coverage in {rev_yr}."
 txt_mcv_persistent_low_single <- "One country ({list}) had MCV1 coverage below {thrshold}% for all of the last {nyrs} years."
 txt_mcv_persistent_low_multi  <- "{count} countries ({list}) had MCV1 coverage below {thrshold}% for all of the last {nyrs} years."
@@ -296,10 +335,10 @@ txt_dropout_diff_lower_pp  <- "DTP-MCV dropout was {diff} percentage points lowe
 txt_dropout_diff_same      <- "DTP-MCV dropout was the same as in {comp_yr} ({comp_pct}%)."
 
 # ── HPV ──────────────────────────────────────────────────────────────────────
-txt_hpv_not_introduced        <- "{ctry_name} had not introduced HPV vaccination as of {rev_yr}."
-txt_hpv_intro_no_data         <- "{ctry_name} had introduced HPV vaccination as of {rev_yr} but has no {rev_yr} WUENIC HPV data."
-txt_hpv_cvg_hpv1_only         <- "Programme coverage of HPV1 among females {hpv1_diff_txt}."
-txt_hpv_cvg_both              <- "Programme coverage of HPV1 among females {hpv1_diff_txt}, and coverage of the last dose {hpvc_label} {hpvc_diff_txt}."
+txt_hpv_not_introduced        <- "{ctry_name} had not introduced human pappilomavirus vaccination (HPV) as of {rev_yr}."
+txt_hpv_intro_no_data         <- "{ctry_name} had introduced human pappilomavirus vaccination (HPV) as of {rev_yr} but has no {rev_yr} WUENIC HPV data."
+txt_hpv_cvg_hpv1_only         <- "Programme coverage of the first dose of human papillomavirus vaccine (HPV1) among females {hpv1_diff_txt}."
+txt_hpv_cvg_both              <- "Programme coverage of the first dose of human papillomavirus vaccine (HPV1) among females {hpv1_diff_txt}, and coverage of the last dose {hpvc_label} {hpvc_diff_txt}."
 txt_hpv_gt90                  <- "{gt90_txt}."
 txt_hpv_no_hpvc_one_yr        <- "HPVc (last dose) data is available for {ctry_name} in WUENIC but only for one year, so a year-on-year comparison is not possible and HPVc is not included in this report."
 txt_hpv_no_hpvc_data          <- "HPVc (last dose) coverage data is not available for {ctry_name} in WUENIC data."
@@ -331,6 +370,14 @@ txt_hpv_gt90_exceeded         <- "HPVc coverage has exceeded the IA2030 target o
 txt_hpv_changed               <- "{chng} from {minusone_val}% in {hpv_rev_yr-1} to {rev_val}% in {hpv_rev_yr}"
 txt_hpv_constant              <- "{chng} at {rev_val}% between {hpv_rev_yr-1} and {hpv_rev_yr}"
 
+txt_hpv_hpv1_vs_minusone_inc   <- "Compared with {minusone_col}, HPV1 coverage among females increased from {hpv1_minusone_cvg}% to {hpv1_rev_cvg}% in {rev_yr}."
+txt_hpv_hpv1_vs_minusone_dec   <- "Compared with {minusone_col}, HPV1 coverage among females decreased from {hpv1_minusone_cvg}% to {hpv1_rev_cvg}% in {rev_yr}."
+txt_hpv_hpv1_vs_minusone_const <- "Compared with {minusone_col}, HPV1 coverage among females remained constant at {hpv1_rev_cvg}% in {rev_yr}."
+txt_hpv_hpvc_vs_minusone_inc   <- "Compared with {minusone_col}, HPVc coverage among females increased from {hpvc_minusone_cvg}% to {hpvc_rev_cvg}% in {rev_yr}."
+txt_hpv_hpvc_vs_minusone_dec   <- "Compared with {minusone_col}, HPVc coverage among females decreased from {hpvc_minusone_cvg}% to {hpvc_rev_cvg}% in {rev_yr}."
+txt_hpv_hpvc_vs_minusone_const <- "Compared with {minusone_col}, HPVc coverage among females remained constant at {hpvc_rev_cvg}% in {rev_yr}."
+txt_hpv_minusone_no_data       <- "{primary_hpv_label} coverage data for {minusone_col} is not available in WUENIC data for {the_ctry_name}."
+
 # ── REGIONAL COMPARISON ───────────────────────────────────────────────────────
 txt_reg_comp_intro_has_hpvc   <- "The chart below shows how {the_ctry_name} compares to other countries in the {region_translated} region on DTP1, DTP3, MCV1, and HPVC coverage in {rev_yr}. The dashed line represents the regional average for each vaccine."
 txt_reg_comp_intro_no_hpvc    <- "The chart below shows how {the_ctry_name} compares to other countries in the {region_translated} region on DTP1, DTP3, MCV1 coverage in {rev_yr}. The dashed line represents the regional average for each vaccine."
@@ -340,17 +387,26 @@ txt_reg_comp_no_hpvc          <- "HPVc (last dose) data is not available for {ct
 txt_reg_comp_hpvc_suffix      <- " and HPVc"
 
 # ── ADDITIONAL VACCINES ───────────────────────────────────────────────────────
-txt_add_vax_trend_decreased   <- "Coverage of {vaccine_label} decreased from {comp_cvg}% in {comp_yr} to {rev_cvg}% in {rev_yr}."
-txt_add_vax_trend_increased   <- "Coverage of {vaccine_label} increased from {comp_cvg}% in {comp_yr} to {rev_cvg}% in {rev_yr}."
-txt_add_vax_trend_constant    <- "Coverage of {vaccine_label} remained constant at {rev_cvg}% between {comp_yr} and {rev_yr}."
-txt_add_vax_target_met        <- "The 90% target was successfully achieved."
-txt_add_vax_target_missed     <- "This did not meet the 90% target."
-txt_add_vax_bullet            <- "{vaccine_label} coverage {diff_txt} and {gt90} the 90 per cent target in {rev_yr}."
-txt_add_vax_increased         <- "increased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
-txt_add_vax_decreased         <- "decreased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
-txt_add_vax_same              <- "remained the same ({comp_val}%) between {comp_yr} and {rev_yr}"
-txt_add_vax_above90           <- "was above"
-txt_add_vax_not_above90       <- "was not above"
+# txt_add_vax_trend_decreased   <- "Coverage of {vaccine_label} decreased from {comp_cvg}% in {comp_yr} to {rev_cvg}% in {rev_yr}."
+# txt_add_vax_trend_increased   <- "Coverage of {vaccine_label} increased from {comp_cvg}% in {comp_yr} to {rev_cvg}% in {rev_yr}."
+# txt_add_vax_trend_constant    <- "Coverage of {vaccine_label} remained constant at {rev_cvg}% between {comp_yr} and {rev_yr}."
+# txt_add_vax_target_met        <- "The 90% target was successfully achieved."
+# txt_add_vax_target_missed     <- "This did not meet the 90% target."
+# txt_add_vax_bullet            <- "{vaccine_label} coverage {diff_txt} and {gt90} the 90 per cent target in {rev_yr}."
+# txt_add_vax_increased         <- "increased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+# txt_add_vax_decreased         <- "decreased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+# txt_add_vax_same              <- "remained the same ({comp_val}%) between {comp_yr} and {rev_yr}"
+# txt_add_vax_above90           <- "was above"
+# txt_add_vax_not_above90       <- "was not above"
+txt_add_vax_inc_inc  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {comp_yr} ({comp_cvg}%) and higher than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_inc_dec  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {comp_yr} ({comp_cvg}%) but lower than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_inc_same <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {comp_yr} ({comp_cvg}%) and the same as in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_dec_inc  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is lower than in {comp_yr} ({comp_cvg}%) but higher than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_dec_dec  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is lower than in {comp_yr} ({comp_cvg}%) and lower than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_dec_same <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is lower than in {comp_yr} ({comp_cvg}%) and the same as in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_sam_inc  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) but higher than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_sam_dec  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) but lower than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_sam_same <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) and the same as in {minusone_col} ({minusone_cvg}%)."
 
 # ── COVERAGE CHANGE DESCRIPTORS ───────────────────────────────────────────────
 txt_cvg_stable                <- "remained relatively stable, within 1 percentage point of the {comp_yr} level"
@@ -376,15 +432,31 @@ txt_unvac_declined  <- "declined {abs_pchng}% from {comparison_lbl} in {comp_yr}
 txt_unvac_increased <- "increased {abs_pchng}% from {comparison_lbl} in {comp_yr} to {recent_lbl} in {rev_yr}"
 
 # ── ZERO-DOSE DIRECTION ───────────────────────────────────────────────────────
-txt_zd_higher_than            <- "higher than"
-txt_zd_lower_than             <- "lower than"
-txt_zd_same_as                <- "the same as"
+#txt_zd_higher_than            <- "higher than"
+#txt_zd_lower_than             <- "lower than"
+#txt_zd_same_as                <- "the same as"
+
+# ── ZERO-DOSE DTP vs IA2030 TARGET ────────────────────────────────────────────
+txt_dtp1_zd_ia2030_higher     <- "The percentage of zero-dose children was {abs_zd_pcnt_diff} percentage points higher than the IA2030 target in {rev_yr}."
+txt_dtp1_zd_ia2030_lower      <- "The percentage of zero-dose children was {abs_zd_pcnt_diff} percentage points lower than the IA2030 target in {rev_yr}."
+txt_dtp1_zd_ia2030_same       <- "The percentage of zero-dose children was the same as the IA2030 target in {rev_yr}."
+
+# ── ZERO-DOSE COUNT COMPARISON (2025 vs 2019 and 2024) ────────────────────────
+txt_dtp1_zd_count_inc_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_inc_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_inc_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as both the {zd_comp_lbl} in {comp_yr} and the {zd_minusone_lbl} in {minusone_col}."
 
 # ── POPULATION CONTEXT ────────────────────────────────────────────────────────
 txt_pop_growth_context        <- "Due to population growth of approximately {pop_grwth}% between {comp_yr} and {rev_yr}, DTP3 coverage in {rev_yr} ({ctry_cvg_rev_dtp3}%) was lower than in {comp_yr} ({ctry_cvg_comp_dtp3}%)."
-txt_surv_inf_vax_increase          <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in the surviving infant target population."
-txt_surv_inf_vax_stable_decline    <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
-txt_surv_inf_vax_increase_capacity <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
+#txt_surv_inf_vax_increase          <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in the surviving infant target population."
+#txt_surv_inf_vax_stable_decline    <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
+#txt_surv_inf_vax_increase_capacity <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
 
 # ── PLOT LABELS ───────────────────────────────────────────────────────────────
 txt_plt_dtp1_title            <- "DTP1 coverage and zero-dose children\nover time, {ctry_name}, 2000–{rev_yr}"
@@ -488,11 +560,10 @@ txt_def_hepbb <- "Hepatitis B birth dose, given within 24 hours after birth (Hep
 txt_def_dtp   <- "Diphtheria, tetanus, and pertussis vaccine, first dose (DTP1) and third dose (DTP3)"
 txt_def_hepb3 <- "Hepatitis B vaccine, third dose (HepB3)"
 txt_def_hib3  <- "Haemophilus influenzae type B vaccine, third dose (Hib3)"
-txt_def_pol3  <- "Poliomyelitis vaccine, third dose (Polio3)"
-txt_def_ipv   <- "Inactivated polio vaccine, first dose (IPV1) and second dose (IPV2): second dose is only shown for oral polio vaccine (OPV) using countries"
+txt_def_ipv   <- "Inactivated polio vaccine, first dose (IPV1) and last dose (IPVC)"
 txt_def_mcv   <- "Measles containing vaccine, first dose (MCV1) and second dose (MCV2)"
 txt_def_rotac <- "Rotavirus vaccine, last dose (RotaC)"
-txt_def_pcv3  <- "Pneumococcal vaccine, third dose (PCV3)"
+txt_def_pcv3  <- "Pneumococcal vaccine, last dose (PCV)"
 txt_def_yfv   <- "Yellow Fever vaccine (YFV)"
 txt_def_menga <- "Meningococcal A vaccine (MengA)"
 txt_def_hpv   <- "Human Papillomavirus vaccine, first dose (HPV1) and last dose (HPVc)"
