@@ -44,8 +44,9 @@ header-includes:
 options(scipen = 999)
 
 # ── TRANSLATION SETUP ─────────────────────────────────────────────────────────
-source("txt_vars_talking_points_countries.R")        # loads text_vars_en
-source(file.path(utils, "R/narrative-translation_deepl.R"))    # loads text_vars (translated)
+source(file.path(directory, type, "talking-points/country-specific-talking-points", "txt_vars_talking_points_countries.R"))
+# loads text_vars_en
+source(file.path(utils, "R/narrative-translation_deepl_grace.R"))    # loads text_vars (translated)
 
 language <- params$language
 
@@ -124,6 +125,11 @@ if (!file.exists(flag_path)) {
   download.file(paste0("https://flagcdn.com/160x120/", iso2, ".png"),
                 destfile = flag_path, mode = "wb")
 }
+
+country_lookup <- x
+if(country == "Andorra") {
+  country_lookup <- "and_code"
+}
 ```
 
 
@@ -142,7 +148,7 @@ cat(paste0('
   valign=center
 ]
 \\begin{center}
-  {\\LARGE \\color{white} \\textbf{', get_text2("txt_sec_banner_title", text_vars), ': ', t_lookup(x, language), '}} \\hspace{0.2cm}\\includegraphics[height=0.6cm]{', flag_path, '}\\\\[0.4em]
+  {\\LARGE \\color{white} \\textbf{', get_text2("txt_sec_banner_title", text_vars), ': ', t_lookup(country_lookup, language), '}} \\hspace{0.2cm}\\includegraphics[height=0.6cm]{', flag_path, '}\\\\[0.4em]
   {\\large \\color{white} ', get_text2("txt_sec_banner_revision", text_vars), ' ', rev_yr, '}
 \\end{center}
 \\end{tcolorbox}
@@ -464,7 +470,7 @@ heatmap_overview <- heatmap_ovw_df %>%
 
 ###### plt_ia2030_zd_proj_bar_line :: progress towards zd target :: bar-chart, linechart ######
 zd <- df %>%
-  filter(vaccine == 'dtp1', year >= min_yr_plots) %>%
+  filter(vaccine == 'dtp1', year >= 2000) %>%
   mutate(measure = 'unvaccinated') %>%
   select(lvl_1:vaccine, measure, unvaccinated)
 
@@ -551,7 +557,7 @@ plt_ia2030_zd_proj_bar_line <- gg <-
         plot.title         = element_text(size = 14, hjust = 0.5, face = "bold")) +
   scale_fill_manual(values = c("#0058AB","#69DBFF"),name = "") +
   scale_y_continuous(labels = scales::comma) +
-  scale_x_continuous(breaks = c(seq(min_yr_plots,rev_yr,1), 2025, 2030))
+  scale_x_continuous(breaks = c(seq(2000,rev_yr,1), 2025, 2030))
 ```
 
 ```{r overview-plot, echo=FALSE, fig.width=10, fig.height=5.3}
@@ -1157,7 +1163,15 @@ print(mcv_plot)
 <!-- ===================== PAGE 5: HPV ===================== -->
 
 ```{r setup-hpv, include=FALSE}
-if (has_hpv_data) {
+# helper: ensure a column exists after pivot_wider; if missing, add as all-NA
+ensure_col <- function(data, col_name) {
+  if (!col_name %in% names(data)) {
+    data[[col_name]] <- NA_real_
+  }
+  data
+}
+
+if (has_hpv_data && nrow(hpv_df) > 0) {
   available_hpv <- unique(hpv_df$vaccine_code)
   has_hpvc      <- "PRHPVC_F" %in% available_hpv
   has_hpv1      <- "PRHPV1_F" %in% available_hpv
@@ -1165,76 +1179,112 @@ if (has_hpv_data) {
   hpvc_yrs <- hpv_df %>% filter(vaccine_code == "PRHPVC_F") %>% pull(year)
   hpv1_yrs <- hpv_df %>% filter(vaccine_code == "PRHPV1_F") %>% pull(year)
 
-  has_hpvc_comparison <- has_hpvc && all(c(hpv_rev_yr, hpv_rev_yr - 1) %in% hpvc_yrs)
-  has_hpv1_comparison <- has_hpv1 && all(c(hpv_rev_yr, hpv_rev_yr - 1) %in% hpv1_yrs)
+  # --- DYNAMIC YEAR MANAGEMENT FALLBACK ---
+  # Check if the global evaluation year exists in this country's data
+  if (hpv_rev_yr %in% hpv_df$year) {
+    local_rev_yr       <- hpv_rev_yr
+    local_recent_col   <- recent_col
+    local_minusone_col <- minusone_col
+  } else {
+    # Fallback to the country's most recent available data year (e.g., 2024)
+    local_rev_yr       <- max(hpv_df$year, na.rm = TRUE)
+    local_recent_col   <- as.character(local_rev_yr)
+    # If 2019 exists, prioritize it for historic long-term comparison
+    local_minusone_col <- if (2019 %in% hpv_df$year) "2019" else as.character(local_rev_yr - 1)
+  }
+
+  has_hpvc_comparison <- has_hpvc && all(c(as.numeric(local_recent_col), as.numeric(local_minusone_col)) %in% hpvc_yrs)
+  has_hpv1_comparison <- has_hpv1 && all(c(as.numeric(local_recent_col), as.numeric(local_minusone_col)) %in% hpv1_yrs)
 
   primary_hpv_code  <- if (has_hpvc_comparison) "PRHPVC_F" else "PRHPV1_F"
   primary_hpv_label <- if (has_hpvc_comparison) t_lookup("hpvc", language) else t_lookup("hpv1", language)
   
   hpvc_label <- t_lookup("hpvc", language)
-
-  has_hpvc_for_rev_yr <- has_hpvc && hpv_rev_yr %in% hpvc_yrs
+  has_hpvc_for_rev_yr <- has_hpvc && local_rev_yr %in% hpvc_yrs
   
-  # coverage change strings
+  # coverage change strings helper
   make_hpv_diff_txt <- function(df_row) {
     d <- df_row$diff
-    if (d > 0)       str_glue(get_text2("txt_vacc_increased", text_vars),
-                               cvg_prev = df_row[[minusone_col]], cvg_rev = df_row[[recent_col]])
-    else if (d < 0)  str_glue(get_text2("txt_vacc_decreased", text_vars),
-                               cvg_prev = df_row[[minusone_col]], cvg_rev = df_row[[recent_col]])
-    else             str_glue(get_text2("txt_vacc_constant",    text_vars),
-                               cvg_rev = df_row[[recent_col]])
+    if (is.na(d)) {
+      str_glue(get_text2("txt_hpv_single_year_hpv1", text_vars))
+    } else if (d > 0) {
+      str_glue(get_text2("txt_vacc_increased", text_vars),
+               cvg_prev = df_row[[local_minusone_col]], cvg_rev = df_row[[local_recent_col]])
+    } else if (d < 0) {
+      str_glue(get_text2("txt_vacc_decreased", text_vars),
+               cvg_prev = df_row[[local_minusone_col]], cvg_rev = df_row[[local_recent_col]])
+    } else {
+      str_glue(get_text2("txt_vacc_constant", text_vars),
+               cvg_rev = df_row[[local_recent_col]])
+    }
   }
+  
+  hpv1_rev_cvg <- hpv_df %>%
+    filter(vaccine_code == "PRHPV1_F", year == local_rev_yr) %>%
+    pull(coverage)
+  if (length(hpv1_rev_cvg) == 0) hpv1_rev_cvg <- NA_real_
 
   # coverage change strings
   hpv <- hpv_df %>%
     filter(vaccine_code == primary_hpv_code) %>%
     select(iso3c, country, vaccine_code, year, coverage) %>%
-    filter(year %in% c(hpv_rev_yr, hpv_rev_yr - 1)) %>%
+    filter(year %in% c(as.numeric(local_recent_col), as.numeric(local_minusone_col))) %>%
     pivot_wider(names_from = year, values_from = coverage) %>%
+    ensure_col(local_recent_col) %>%
+    ensure_col(local_minusone_col) %>%
     mutate(
-      diff = .data[[recent_col]] - .data[[minusone_col]],
+      diff = .data[[local_recent_col]] - .data[[local_minusone_col]],
       chng = case_when(
-        diff > 0 ~ get_text2("txt_vacc_increased", text_vars), 
-        diff < 0 ~ get_text2("txt_vacc_decreased", text_vars), 
-        TRUE ~ get_text2("txt_vacc_constant", text_vars)
+        is.na(diff) ~ NA_character_,
+        diff > 0 ~ "increased", 
+        diff < 0 ~ "decreased", 
+        TRUE ~ "constant"
       ),
-      rev_val = .data[[recent_col]],
-      minusone_val = .data[[minusone_col]],
+      rev_val = .data[[local_recent_col]],
+      minusone_val = .data[[local_minusone_col]],
       diff_txt = case_when(
+        is.na(diff) ~ str_glue(get_text2("txt_hpv_single_year_hpv1", text_vars)),
         chng %in% c("increased", "decreased") ~ 
-          str_glue(get_text2("txt_hpv_changed", text_vars), 
-                   chng = chng, prev_val = .data[[minusone_col]], prev_yr = hpv_rev_yr - 1, cur_val = .data[[recent_col]], cur_yr = hpv_rev_yr),
+          str_glue(get_text2("txt_hpv_changed", text_vars)),
         TRUE ~ 
-          str_glue(get_text2("txt_hpv_constant", text_vars), 
-                   chng = chng, cur_val = .data[[recent_col]], prev_yr = hpv_rev_yr - 1, cur_yr = hpv_rev_yr)
+          str_glue(get_text2("txt_hpv_constant", text_vars))
       ),
       
       # Target threshold evaluation text
       gt90 = case_when(
-        .data[[recent_col]] < 80  & chng == "increased" ~ 
+        is.na(.data[[local_recent_col]]) ~ NA_character_,
+        .data[[local_recent_col]] < 80  & chng == "increased" ~ 
           str_glue(get_text2("txt_hpv_gt90_below80_up", text_vars), primary_hpv_label = primary_hpv_label),
-        .data[[recent_col]] < 80  & chng != "increased" ~ 
+        .data[[local_recent_col]] < 80  & chng != "increased" ~ 
           str_glue(get_text2("txt_hpv_gt90_below80", text_vars), primary_hpv_label = primary_hpv_label),
-        .data[[recent_col]] %in% 80:89 & chng == "increased" ~ 
+        .data[[local_recent_col]] %in% 80:89 & chng == "increased" ~ 
           str_glue(get_text2("txt_hpv_gt90_near_up", text_vars), primary_hpv_label = primary_hpv_label),
-        .data[[recent_col]] %in% 80:89 & chng != "increased" ~ 
+        .data[[local_recent_col]] %in% 80:89 & chng != "increased" ~ 
           str_glue(get_text2("txt_hpv_gt90_near", text_vars), primary_hpv_label = primary_hpv_label),
-        .data[[recent_col]] == 90 ~ 
+        .data[[local_recent_col]] == 90 ~ 
           str_glue(get_text2("txt_hpv_gt90_achieved", text_vars), primary_hpv_label = primary_hpv_label),
-        .data[[recent_col]] > 90  ~ 
+        .data[[local_recent_col]] > 90  ~ 
           str_glue(get_text2("txt_hpv_gt90_exceeded", text_vars), primary_hpv_label = primary_hpv_label),
         TRUE ~ NA_character_
       )
     )
 
+  # Check if the reference year exists in the dataset
+if (rev_yr %in% hpv_df$year) {
+  
   hpv_unvac <- hpv_df %>%
-    filter(year == hpv_rev_yr) %>%
+    filter(year == rev_yr) %>%
     select(iso3c, country, vaccine_code, unvaccinated) %>%
+    distinct(vaccine_code, .keep_all = TRUE) %>% 
     pivot_wider(names_from = vaccine_code, values_from = unvaccinated)
 
-  if (!"PRHPVC_F" %in% names(hpv_unvac)) hpv_unvac$PRHPVC_F <- NA
-  if (!"PRHPV1_F" %in% names(hpv_unvac)) hpv_unvac$PRHPV1_F <- NA
+  # Safe generation if pivot_wider returns an empty dataframe structure
+  if (nrow(hpv_unvac) == 0) {
+    hpv_unvac <- tibble(PRHPVC_F = NA_real_, PRHPV1_F = NA_real_)
+  } else {
+    if (!"PRHPVC_F" %in% names(hpv_unvac)) hpv_unvac$PRHPVC_F <- NA_real_
+    if (!"PRHPV1_F" %in% names(hpv_unvac)) hpv_unvac$PRHPV1_F <- NA_real_
+  }
 
   hpv_unvac <- hpv_unvac %>%
     mutate(diff = PRHPVC_F - PRHPV1_F) %>%
@@ -1242,31 +1292,44 @@ if (has_hpv_data) {
     label_vals_millions(PRHPV1_F, "PRHPV1_F_lbl") %>%
     label_vals_millions(diff,     "diff_lbl")
 
+  # Set flag based on actual data presence
   has_hpv_num_unvac <- !is.na(hpv_unvac$PRHPV1_F) | !is.na(hpv_unvac$PRHPVC_F)
-  first_hpv_year    <- hpv_intro %>% filter(introduced == 1) %>% pull(year) %>% min(na.rm = TRUE)
+
+} else {
+  # If rev_yr isn't in the data, turn the flag off so the bullet is suppressed
+  has_hpv_num_unvac <- FALSE
+}
+  
+  first_hpv_year <- NA_integer_
+  if (exists("hpv_intro") && nrow(hpv_intro) > 0) {
+    first_hpv_year <- hpv_intro %>% filter(introduced == 1) %>% pull(year) %>% min(na.rm = TRUE)
+  }
 
   reg_rank_hpv <- hpv_peers %>%
-    filter(vaccine_code == primary_hpv_code, year == hpv_rev_yr) %>%
+    filter(vaccine_code == primary_hpv_code, year == rev_yr) %>%
     arrange(desc(coverage)) %>%
     mutate(rank = row_number()) %>%
     filter(iso3c == ctry_iso)
 
   n_peers_hpv <- hpv_peers %>%
-    filter(vaccine_code == primary_hpv_code, year == hpv_rev_yr) %>%
-    n_distinct("iso3c")
+    filter(vaccine_code == primary_hpv_code, year == rev_yr) %>%
+    distinct(iso3c) %>% 
+    nrow()
   
   hpv_years_wide <- hpv_df %>% 
     select(iso3c, country, vaccine_code, year, coverage) %>%
-      pivot_wider(names_from = year, values_from = coverage)
+    pivot_wider(names_from = year, values_from = coverage)
 
-  # also get hpv1 diff_txt for the "both" bullet
+  # get hpv1 diff_txt for the "both" bullet
   if (has_hpv1 && has_hpvc) {
     hpv1_row <- hpv_df %>%
       filter(vaccine_code == "PRHPV1_F") %>%
       select(iso3c, country, vaccine_code, year, coverage) %>%
-      filter(year %in% c(hpv_rev_yr, hpv_rev_yr - 1)) %>%
+      filter(year %in% c(as.numeric(local_recent_col), as.numeric(local_minusone_col))) %>%
       pivot_wider(names_from = year, values_from = coverage) %>%
-      mutate(diff = .data[[recent_col]] - .data[[minusone_col]])
+      ensure_col(local_recent_col) %>%
+      ensure_col(local_minusone_col) %>%
+      mutate(diff = .data[[local_recent_col]] - .data[[local_minusone_col]])
     hpv1_diff_txt <- make_hpv_diff_txt(hpv1_row)
     hpvc_diff_txt <- hpv %>% pull(diff_txt)
   } else {
@@ -1390,23 +1453,41 @@ cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_hpv", text_var
 ```
 
 ```{r hpv-bullets, results='asis', echo=FALSE}
+# helper: safely pull a single value, returning NA if no matching row/column exists
+safe_pull_hpv <- function(data, code, col) {
+  val <- data %>% filter(vaccine_code == code) %>% pull({{ col }})
+  if (length(val) == 0) NA_real_ else val
+}
+
+# helper: ensure a column exists in hpv_years_wide before selecting it;
+ensure_col <- function(data, col_name) {
+  if (!col_name %in% names(data)) {
+    data[[col_name]] <- NA_real_
+  }
+  data
+}
+
 if (hpv_intro_flag == 0) {
   cat(paste0("- ", str_glue(get_text2("txt_hpv_not_introduced", text_vars)), "\n\n"))
 } else if (hpv_intro_flag == 1 & !has_hpv_data) {
   cat(paste0("- ", str_glue(get_text2("txt_hpv_intro_no_data", text_vars)), "\n\n"))
 } else {
+
+  # Guard against missing year-columns using our local structural variables
+  hpv_years_wide <- hpv_years_wide %>%
+    ensure_col(local_minusone_col) %>%
+    ensure_col(local_recent_col)
+
   if (has_hpvc) {
 
     hpv_metrics <- hpv_years_wide %>%
-      select(vaccine_code, all_of(comparison_col), all_of(minusone_col), all_of(recent_col)) %>%
-      rename(comp_val = !!sym(comparison_col), minusone_val = !!sym(minusone_col), rev_val = !!sym(recent_col))
+      select(vaccine_code, all_of(local_minusone_col), all_of(local_recent_col)) %>%
+      rename(comp_val = !!sym(local_minusone_col), rev_val = !!sym(local_recent_col))
 
-    hpv1_comp_cvg     <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(comp_val)
-    hpv1_rev_cvg      <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(rev_val)
-    hpv1_minusone_cvg <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(minusone_val)
-    hpvc_comp_cvg     <- hpv_metrics %>% filter(vaccine_code == "PRHPVC_F") %>% pull(comp_val)
-    hpvc_rev_cvg      <- hpv_metrics %>% filter(vaccine_code == "PRHPVC_F") %>% pull(rev_val)
-    hpvc_minusone_cvg <- hpv_metrics %>% filter(vaccine_code == "PRHPVC_F") %>% pull(minusone_val)
+    hpv1_comp_cvg     <- safe_pull_hpv(hpv_metrics, "PRHPV1_F", comp_val)
+    hpv1_rev_cvg      <- safe_pull_hpv(hpv_metrics, "PRHPV1_F", rev_val)
+    hpvc_comp_cvg     <- safe_pull_hpv(hpv_metrics, "PRHPVC_F", comp_val)
+    hpvc_rev_cvg      <- safe_pull_hpv(hpv_metrics, "PRHPVC_F", rev_val)
 
     if (is.na(hpv1_comp_cvg) | is.na(hpvc_comp_cvg)) {
       target_key <- "txt_hpv_single_year_both"
@@ -1429,75 +1510,39 @@ if (hpv_intro_flag == 0) {
     hpv_cov_sentence <- get_text2(target_key, text_vars)
     bullet_text <- str_glue(
       hpv_cov_sentence,
-      comp_yr       = comp_yr,
-      rev_yr        = rev_yr,
+      comp_yr       = local_minusone_col, # Maps to 2019 baseline
+      rev_yr        = local_rev_yr,       # Maps to 2024 baseline
       hpv1_rev_cvg  = hpv1_rev_cvg,
       hpvc_rev_cvg  = hpvc_rev_cvg
     )
 
     cat("- ", bullet_text, "\n\n", sep = "")
-
-    # minusone (2024) comparison bullets
-    if (!is.na(hpv1_minusone_cvg)) {
-      hpv1_minusone_diff <- hpv1_rev_cvg - hpv1_minusone_cvg
-      hpv1_minusone_key <- case_when(
-        hpv1_minusone_diff > 0  ~ "txt_hpv_hpv1_vs_minusone_inc",
-        hpv1_minusone_diff < 0  ~ "txt_hpv_hpv1_vs_minusone_dec",
-        TRUE ~ "txt_hpv_hpv1_vs_minusone_const"
-      )
-      cat("- ", str_glue(get_text2(hpv1_minusone_key, text_vars),
-        minusone_yr = minusone_yr, hpv1_minusone_cvg = hpv1_minusone_cvg, rev_yr = rev_yr, hpv1_rev_cvg = hpv1_rev_cvg), "\n\n", sep = "")
-    } else {
-      cat("- ", str_glue(get_text2("txt_hpv_minusone_no_data", text_vars), primary_hpv_label = "HPV1"), "\n\n", sep = "")
-    }
-
-    if (!is.na(hpvc_minusone_cvg)) {
-      hpvc_minusone_diff <- hpvc_rev_cvg - hpvc_minusone_cvg
-      hpvc_minusone_key <- case_when(
-        hpvc_minusone_diff > 0  ~ "txt_hpv_hpvc_vs_minusone_inc",
-        hpvc_minusone_diff < 0  ~ "txt_hpv_hpvc_vs_minusone_dec",
-        TRUE ~ "txt_hpv_hpvc_vs_minusone_const"
-      )
-      cat("- ", str_glue(get_text2(hpvc_minusone_key, text_vars),
-        minusone_yr = minusone_yr, hpvc_minusone_cvg = hpvc_minusone_cvg, rev_yr = rev_yr, hpvc_rev_cvg = hpvc_rev_cvg), "\n\n", sep = "")
-    } else {
-      cat("- ", str_glue(get_text2("txt_hpv_minusone_no_data", text_vars), primary_hpv_label = "HPVc"), "\n\n", sep = "")
-    }
-
-    # IA2030 target bullet
     cat("- ", hpv %>% pull(gt90), "\n\n", sep = "")
 
   } else {
     hpv_metrics <- hpv_years_wide %>%
-      select(vaccine_code, all_of(comparison_col), all_of(minusone_col), all_of(recent_col)) %>%
-      rename(comp_val = !!sym(comparison_col), minusone_val = !!sym(minusone_col), rev_val = !!sym(recent_col))
-    hpv1_comp_cvg     <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(comp_val)
-    hpv1_rev_cvg      <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(rev_val)
-    hpv1_minusone_cvg <- hpv_metrics %>% filter(vaccine_code == "PRHPV1_F") %>% pull(minusone_val)
+      select(vaccine_code, all_of(local_minusone_col), all_of(local_recent_col)) %>%
+      rename(comp_val = !!sym(local_minusone_col), rev_val = !!sym(local_recent_col))
+
+    hpv1_comp_cvg     <- safe_pull_hpv(hpv_metrics, "PRHPV1_F", comp_val)
+    hpv1_rev_cvg      <- safe_pull_hpv(hpv_metrics, "PRHPV1_F", rev_val)
 
     if (is.na(hpv1_comp_cvg)) {
       bullet_text <- str_glue(get_text2("txt_hpv_single_year_hpv1", text_vars))
     } else {
+      hpv1_diff <- hpv1_rev_cvg - hpv1_comp_cvg
+      hpv1_diff_txt <- case_when(
+        hpv1_diff > 0  ~ str_glue(get_text2("txt_hpv_diff_inc", text_vars)),
+        hpv1_diff < 0  ~ str_glue(get_text2("txt_hpv_diff_dec", text_vars)),
+        TRUE           ~ str_glue(get_text2("txt_hpv_diff_const", text_vars))
+      )
       bullet_text <- str_glue(get_text2("txt_hpv_cvg_hpv1_only", text_vars), hpv1_diff_txt = hpv1_diff_txt)
     }
 
+    # Format the root historical change bullet point
+    bullet_text <- str_glue(bullet_text, comp_yr = local_minusone_col, rev_yr = local_rev_yr, hpv1_rev_cvg = hpv1_rev_cvg)
     cat("- ", bullet_text, "\n\n", sep = "")
 
-    # minusone (2024) comparison bullet, HPV1 only
-    if (!is.na(hpv1_minusone_cvg)) {
-      hpv1_minusone_diff <- hpv1_rev_cvg - hpv1_minusone_cvg
-      hpv1_minusone_key <- case_when(
-        hpv1_minusone_diff > 0  ~ "txt_hpv_hpv1_vs_minusone_inc",
-        hpv1_minusone_diff < 0  ~ "txt_hpv_hpv1_vs_minusone_dec",
-        TRUE ~ "txt_hpv_hpv1_vs_minusone_const"
-      )
-      cat("- ", str_glue(get_text2(hpv1_minusone_key, text_vars),
-        minusone_yr = minusone_yr, hpv1_minusone_cvg = hpv1_minusone_cvg, rev_yr = rev_yr, hpv1_rev_cvg = hpv1_rev_cvg), "\n\n", sep = "")
-    } else {
-      cat("- ", str_glue(get_text2("txt_hpv_minusone_no_data", text_vars), primary_hpv_label = "HPV1"), "\n\n", sep = "")
-    }
-
-    # IA2030 target bullet
     cat("- ", hpv %>% pull(gt90), "\n\n", sep = "")
 
     if (exists("has_hpvc_comparison") && !has_hpvc_comparison) {
@@ -1509,7 +1554,7 @@ if (hpv_intro_flag == 0) {
 
   if (has_hpv_num_unvac) {
     cat("- ", str_glue(get_text2("txt_hpv_unvac", text_vars),
-      hpv1_unvac_lbl = hpv_unvac$PRHPV1_F_lbl), "\n\n", sep = "")
+      hpv1_unvac_lbl = hpv_unvac$PRHPV1_F_lbl, rev_yr = rev_yr), "\n\n", sep = "")
   } else {
     cat("- ", str_glue(get_text2("txt_hpv_no_unvac_data", text_vars)), "\n\n", sep = "")
   }
@@ -1519,7 +1564,8 @@ if (exists("reg_rank_hpv") && nrow(reg_rank_hpv) > 0) {
   cat("- ", str_glue(get_text2("txt_hpv_reg_rank", text_vars),
     rank              = reg_rank_hpv$rank,
     n_peers_hpv       = n_peers_hpv,
-    primary_hpv_label = primary_hpv_label), "\n\n", sep = "")
+    primary_hpv_label = primary_hpv_label,
+    rev_yr            = local_rev_yr), "\n\n", sep = "")
 }
 invisible(NULL)
 ```

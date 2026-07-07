@@ -1,12 +1,9 @@
+# script to render country-level talking points reports and translate all to French, Spanish, Portuguese, and Arabic.
 
 rm(list = ls()) 
 
 wd <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - 2025 rev/unicef-products")
 source(file.path(wd, "main_vars.R"))
-
-# debug_mode <- FALSE
-# testing    <- FALSE
-# show_marks <- FALSE
 
 library(tidyverse)
 library(knitr)
@@ -17,30 +14,21 @@ library(patchwork)
 library(tidytext)
 
 comp_yr <- 2019
-type <- "dummy"
-pct_threshold <- 0.10
-min_yr_plots  <- 2010
-n_years_comparison_plot <- 5
+rev_yr <- 2025
+type <- "final"
 
 ## setup ----
 directory <- file.path(RevDir, "unicef-products")
 utils <- file.path(paste0(directory, "/", {type}, "/utils"))
 wrkfolder  <- str_glue(RevDir, "/unicef-products/{type}/country-specific-charts")
 wiisefolder <- str_glue(RevDir, "/unicef-products/{type}/wiise-outputs")
-dqfolder   <- str_glue(RevDir, "/unicef-products/{type}/data-quality/DQProduct")
 SubnatFuncDir <- file.path("/Users/UNICEF/Library/CloudStorage/OneDrive-SharedLibraries-UNICEF/Health-HIV Data & Analytics - Subnational data analysis/utils/R")
-DataDir <- str_glue(dqfolder, "/data")
-ppt_script_path <- file.path(dqfolder, "DQ_ppt_compile_translate.R")
 
-source(str_glue("{directory}/{type}/utils/R/label_vals.R"))  # labeling function
-source(str_glue("{directory}/{type}/utils/user_profiles.R"))
-source(file.path(dqfolder, "R/funcs.R"))
+source(file.path(directory, type, "utils/user_profiles.R"))
+source(file.path(utils, "R/label_vals.R"))
 source(str_glue("{utils}/R/slide_general_funcs.R"))    # func_slide_v, func_slide_bb, etc.
 source(str_glue("{utils}/R/slide_production_funcs.R")) # func_slide_v_txt, func_slide_v_tlm, etc.
-source(file.path(directory, str_glue("{type}/utils/R/slide_production_generic_text.R")))
-
-## ── LOAD DATA ────────────────────────────────────────────────────────────────
-source(file.path(dqfolder, "load_data.R"))
+source(file.path(utils, "R/slide_production_generic_text.R"))
 
 source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate" = "#80BD41", "Survey" = "#FFC20E")
 
@@ -120,7 +108,8 @@ list_ar <- language_list %>% filter(language == "ar") %>% filter(iso3c %in% iso_
 # read in excel translation table
 translation_table <- read_csv(str_glue(directory, "/dummy/country-specific-charts/translation-table_charts_ctry.csv")) %>%
   janitor::clean_names() %>%
-  mutate(key = tolower(key))
+  mutate(key = tolower(key)) %>% 
+  unique()
 translation_table_general <- read_csv(str_glue(directory, "/draft/utils/translation_table_general.csv")) %>%
   janitor::clean_names() %>%
   mutate(key = tolower(key))
@@ -133,17 +122,19 @@ for (country in countries) {
   x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
   
   # select languages
-  if (x %in% list_ar) {
-    languages <- c("en", "ar")
-  } else if (x %in% list_fr) {
-    languages <- c("en", "fr")
-  } else if (x %in% list_es) {
-    languages <- c("en", "es")
-  } else if (x %in% list_pt) {
-    languages <- c("en", "pt")
-  } else {
-    languages <- "en"
-  }
+  # if (x %in% list_ar) {
+  #   languages <- c("en", "ar")
+  # } else if (x %in% list_fr) {
+  #   languages <- c("en", "fr")
+  # } else if (x %in% list_es) {
+  #   languages <- c("en", "es")
+  # } else if (x %in% list_pt) {
+  #   languages <- c("en", "pt")
+  # } else {
+  #   languages <- "en"
+  # }
+  
+  languages = "en"
   
   for (language in languages) {
     
@@ -155,32 +146,33 @@ for (country in countries) {
     final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports", 
                                    paste0(x, "_talking_points_", language, ".pdf"))
     
-    country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x, 
-                                     paste0(x, "_talking_points_", language, ".pdf"))
+    # country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x, 
+    #                                  paste0(x, "_talking_points_", language, ".pdf"))
     
     pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
-    temp_output_path <- file.path(tempdir(), pdf_filename)
+    #temp_output_path <- file.path(tempdir(), pdf_filename)
     
     # pass plot_language in using the params list
     suppressWarnings(rmarkdown::render(
-      input = file.path(directory, "dummy/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
-      output_file = temp_output_path,
+      input = file.path(directory, "final/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
+      output_file = final_output_path,
       # pass both the regular text language and the plot language (english when main language is arabic)
       params = list(country = current_country, language = language, plot_language = plot_lang), 
       envir = new.env(), 
       quiet = TRUE
     ))
     
-    dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
-    dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
+    #dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
+    #dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
     
-    file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
-    file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
+    #file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
+    #file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
     
-    unlink(temp_output_path)
+    #unlink(temp_output_path)
     
     message("✅ Reports successfully saved to target destinations for ", x, " (", language, ")")
   }
 }
 
 message("✅ All reports generated successfully!")
+

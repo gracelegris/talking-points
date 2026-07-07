@@ -113,9 +113,9 @@ txt_general_dropout_diff_same <- "the same as in {comp_yr}"
 # 
 # # ── POPULATION CONTEXT ────────────────────────────────────────────────────────
 # txt_pop_growth_context   <- "Due to population growth of approximately {pop_grwth}% between {comp_yr} and {rev_yr}, DTP3 coverage in {rev_yr} ({ctry_cvg_rev_dtp3}%) was lower than in {comp_yr} ({ctry_cvg_comp_dtp3}%)."
-#txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
-#txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
-#txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
+txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
+txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
+txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
 # 
 # # ── PLOT LABELS ───────────────────────────────────────────────────────────────
 # txt_plt_dtp1_title       <- "DTP1 coverage and zero-dose children\nover time, {ctry_name}, 2000–{rev_yr}"
@@ -214,8 +214,8 @@ txt_region_includes_list      <- "The {region_translated} region includes the fo
 txt_region_banner_title       <- "WUENIC Talking Points: {region_translated} Region ({regn})"
 txt_region_title              <- "Countries in {region_translated} Region"
 txt_ia2030_zd_proj_bar_line_y <- "# zero-dose children"
-txt_ia2030_zd_proj_bar_line_title <- "Estimated number of zero-dose children,\n{min_yr_plots}–{rev_yr} and target by 2030, {the_ctry_name}"
-txt_ia2030_zd_proj_bar_line_cpt <- "Note: The Immunization Agenda 2030 (IA2030) calls on all countries to reduce the number of zero-dose children in 2019 in half by 2030.\nDark blue bars are the estimated number of zero-dose children in {min_yr_plots}–{rev_yr}, light blue bar is the target number of zero-dose children by 2030.\nThe line and points show the yearly progress and trajectory to meet the target by 2030, based on a linear decline."
+txt_ia2030_zd_proj_bar_line_title <- "Estimated number of zero-dose children,\n2000–{rev_yr} and target by 2030, {the_ctry_name}"
+txt_ia2030_zd_proj_bar_line_cpt <- "Note: The Immunization Agenda 2030 (IA2030) calls on all countries to reduce the number of zero-dose children in 2019 in half by 2030.\nDark blue bars are the estimated number of zero-dose children in 2000–{rev_yr}, light blue bar is the target number of zero-dose children by 2030.\nThe line and points show the yearly progress and trajectory to meet the target by 2030, based on a linear decline."
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -342,7 +342,7 @@ txt_hpv_cvg_both              <- "Programme coverage of the first dose of human 
 txt_hpv_gt90                  <- "{gt90_txt}."
 txt_hpv_no_hpvc_one_yr        <- "HPVc (last dose) data is available for {ctry_name} in WUENIC but only for one year, so a year-on-year comparison is not possible and HPVc is not included in this report."
 txt_hpv_no_hpvc_data          <- "HPVc (last dose) coverage data is not available for {ctry_name} in WUENIC data."
-txt_hpv_unvac                 <- "In {hpv_rev_yr}, {hpv1_unvac_lbl} females in {the_ctry_name} did not receive any HPV vaccination."
+txt_hpv_unvac                 <- "In {hpv_rev_yr}, approximately {hpv1_unvac_lbl} females in {the_ctry_name} did not receive any HPV vaccination."
 txt_hpv_no_unvac_data         <- "The number of unvaccinated females for HPV in {the_ctry_name} in {hpv_rev_yr} is not available in WUENIC data."
 txt_hpv_reg_rank              <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers_hpv} countries in {primary_hpv_label} coverage in {hpv_rev_yr}."
 txt_hpv_intro_partial         <- "In {regn}, {n_ctry_intro} out of {n_ctry_total} countries ({pct_ctry_intro}%) had introduced HPV vaccination by {rev_yr}."
@@ -377,6 +377,7 @@ txt_hpv_hpvc_vs_minusone_inc   <- "Compared with {minusone_col}, HPVc coverage a
 txt_hpv_hpvc_vs_minusone_dec   <- "Compared with {minusone_col}, HPVc coverage among females decreased from {hpvc_minusone_cvg}% to {hpvc_rev_cvg}% in {rev_yr}."
 txt_hpv_hpvc_vs_minusone_const <- "Compared with {minusone_col}, HPVc coverage among females remained constant at {hpvc_rev_cvg}% in {rev_yr}."
 txt_hpv_minusone_no_data       <- "{primary_hpv_label} coverage data for {minusone_col} is not available in WUENIC data for {the_ctry_name}."
+txt_hpv_no_data_for_year <- "{vaccine_label} coverage data for {yr} is not available in WUENIC data for {the_ctry_name}."
 
 # ── REGIONAL COMPARISON ───────────────────────────────────────────────────────
 txt_reg_comp_intro_has_hpvc   <- "The chart below shows how {the_ctry_name} compares to other countries in the {region_translated} region on DTP1, DTP3, MCV1, and HPVC coverage in {rev_yr}. The dashed line represents the regional average for each vaccine."
@@ -393,9 +394,9 @@ txt_reg_comp_hpvc_suffix      <- " and HPVc"
 # txt_add_vax_target_met        <- "The 90% target was successfully achieved."
 # txt_add_vax_target_missed     <- "This did not meet the 90% target."
 # txt_add_vax_bullet            <- "{vaccine_label} coverage {diff_txt} and {gt90} the 90 per cent target in {rev_yr}."
-# txt_add_vax_increased         <- "increased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
-# txt_add_vax_decreased         <- "decreased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
-# txt_add_vax_same              <- "remained the same ({comp_val}%) between {comp_yr} and {rev_yr}"
+txt_add_vax_increased         <- "increased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+txt_add_vax_decreased         <- "decreased from {comp_val}% in {comp_yr} to {rev_val}% in {rev_yr}"
+txt_add_vax_same              <- "remained the same ({comp_val}%) between {comp_yr} and {rev_yr}"
 # txt_add_vax_above90           <- "was above"
 # txt_add_vax_not_above90       <- "was not above"
 txt_add_vax_inc_inc  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {comp_yr} ({comp_cvg}%) and higher than in {minusone_col} ({minusone_cvg}%)."
