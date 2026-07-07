@@ -35,9 +35,6 @@ source(file.path(utils, "R/slide_production_generic_text.R"))
 
 source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate" = "#80BD41", "Survey" = "#FFC20E")
 
-# wuenic data
-#wuenic_dta <- read_csv(file.path(RevDir, "wuenic_master", type, paste0("wuenic-master_", rev_yr, "rev.csv"))) %>%
-  
 wuenic_dta <- read_rds(file.path(directory, type, paste0("01_wuenic_dataset-prep/clean_wuenic_MASTER_", rev_yr, "rev.rds"))) %>%
   filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_gavi_transition", "region_european_union", "region_wb"),
          year >= 2000) %>%
