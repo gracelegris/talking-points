@@ -79,6 +79,8 @@ reg_type   <- "region"
 
 region_translated <- t_lookup(region, language)
 
+region_translated_plots <- t_lookup(region, plot_lang)
+
 report_title <- str_glue(get_text2("txt_region_banner_title", text_vars), region_translated = region_translated)
 if(reg %in% c("European Union", "Central Africa", "Western Africa", "LMICs", "WB HICs", "UMICs", "LICs", 
               "Gavi transition", "Gavi HICs", "Never Gavi MICs", "Gavi 57", "Non-Programme")) {
@@ -498,7 +500,7 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
     labs(
       x = '', y = '',
       title = heatmap_title,
-      caption = str_glue(get_text2("txt_wuenic_source", text_vars), "\n", get_text2("txt_plt_ovw_heatmap_caption_vax", text_vars), v_upper = toupper(v), rev_yr = rev_yr)
+      caption = str_glue(get_text2("txt_wuenic_source", plot_vars), "\n", get_text2("txt_plt_ovw_heatmap_caption_vax", plot_vars), v_upper = toupper(v), rev_yr = rev_yr)
     )
   assign(paste0("heatmap_", plt_df$vaccine, sep = ""), gg)
 }
@@ -543,8 +545,8 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
         sec.axis = sec_axis(~ . * scale_factor, name = get_text2("txt_plt_cvg_pct", plot_vars), breaks = seq(0, 100, 25))) +
       labs(
         title = str_glue(title_tpl, ctry_name = regn, rev_yr = rev_yr),
-        caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
-        x = get_text2("txt_plt_year", text_vars)
+        caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+        x = get_text2("txt_plt_year", plot_vars)
       ) +
       theme_unicef() +
       theme(
@@ -750,11 +752,11 @@ plt_ia2030_zd_proj_bar_line <- gg <-
   geom_line(data = zd2 %>% filter(chart=='line'), aes(y=unvaccinated, x=year)) +
   geom_point(data = zd2 %>% filter(chart=='line'), aes(y=unvaccinated, x=year)) +
   # geom_text(data = zd2 %>% filter(chart=='bar'), aes(y=unvaccinated, x=year, label = format(unvaccinated, big.mark=",")), vjust = -0.5, size = 3) +
-  labs(y = get_text2("txt_ia2030_zd_proj_bar_line_y", text_vars),
+  labs(y = get_text2("txt_ia2030_zd_proj_bar_line_y", plot_vars),
        x = "",
-       title = str_glue(get_text2("txt_ia2030_zd_proj_bar_line_title", text_vars)),
-       caption = paste0(str_glue(get_text2("txt_wuenic_source", text_vars)), "\n", 
-                        str_glue(get_text2("txt_ia2030_zd_proj_bar_line_cpt", text_vars)))) +
+       title = str_glue(get_text2("txt_ia2030_zd_proj_bar_line_title", plot_vars)),
+       caption = paste0(str_glue(get_text2("txt_wuenic_source", plot_vars)), "\n", 
+                        str_glue(get_text2("txt_ia2030_zd_proj_bar_line_cpt", plot_vars)))) +
   theme_minimal()+
   theme_unicef()+
   theme(legend.position="bottom",
@@ -1598,30 +1600,35 @@ first_hpv_year <- min(c(plot_hpv1$year, plot_hpvc$year), na.rm = TRUE)
 hpv_scale_factor <- 100 / max(plot_zd_hpv$unvaccinated, na.rm = TRUE)
 
 if(has_hpvc == 0 & has_hpv_unvac == 0) {
-  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_no_hpvc_no_unvac", text_vars))
+  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_no_hpvc_no_unvac", plot_vars))
 } else if (has_hpvc == 0 & has_hpv_unvac == 1) {
-  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_no_hpvc_unvac", text_vars))
+  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_no_hpvc_unvac", plot_vars))
 } else if (has_hpvc == 1 & has_hpv_unvac == 0) {
-  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_hpvc_no_unvac", text_vars))
+  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_hpvc_no_unvac", plot_vars))
 } else if (has_hpvc == 1 & has_hpv_unvac == 1) {
-  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_hpvc_unvac", text_vars))
+  hpv_line_plot_title <- str_glue(get_text2("txt_hpv_line_title_hpvc_unvac", plot_vars))
 }
 
 if (has_hpv == 1) {
   hpv_region_plot <- ggplot() +
-  geom_col(data = plot_zd_hpv, aes(x = year, y = unvaccinated, fill = get_text2("txt_plt_unvac_females", text_vars)), alpha = 0.4, width = 0.6) +
+  geom_col(data = plot_zd_hpv, aes(x = year, y = unvaccinated, fill = get_text2("txt_plt_unvac_females", plot_vars)), alpha = 0.4, width = 0.6) +
   {if (nrow(plot_hpv1) > 1)
     list(
-      geom_line(data=plot_hpv1, aes(x=year, y=coverage / hpv_scale_factor, color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
-      geom_point(data=plot_hpv1, aes(x=year, y=coverage / hpv_scale_factor, color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=3, alpha = 0.7))} +
+      geom_line(data=plot_hpv1, aes(x=year, y=coverage / hpv_scale_factor, 
+                                    color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
+      geom_point(data=plot_hpv1, aes(x=year, y=coverage / hpv_scale_factor, 
+                                     color=get_text2("txt_plt_hpv1_legend_cvg", plot_vars)), size=3, alpha = 0.7))} +
   {if (nrow(plot_hpvc) > 1)
-    list(geom_line(data=plot_hpvc, aes(x=year, y=coverage / hpv_scale_factor, color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
-         geom_point(data=plot_hpvc, aes(x=year, y=coverage / hpv_scale_factor, color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=3, alpha = 0.7))
+    list(geom_line(data=plot_hpvc, aes(x=year, y=coverage / hpv_scale_factor, 
+                                       color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=1.5, alpha = 0.7),
+         geom_point(data=plot_hpvc, aes(x=year, y=coverage / hpv_scale_factor, 
+                                        color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=3, alpha = 0.7))
     else list(geom_point(data=plot_hpvc, aes(x=year, y=coverage / hpv_scale_factor, 
                                              color=get_text2("txt_plt_hpvc_legend_cvg", plot_vars)), size=3, alpha = 0.7))} +
     geom_hline(yintercept = 90 / hpv_scale_factor, linetype = "dashed", alpha = 0.7) +
   scale_color_manual(name = NULL, values = setNames(c("#1CABE2", "#6A1E72"), 
-                                                    c(get_text2("txt_plt_hpv1_legend_cvg", plot_vars), get_text2("txt_plt_hpvc_legend_cvg", plot_vars)))) +
+                                                    c(get_text2("txt_plt_hpv1_legend_cvg", plot_vars), 
+                                                      get_text2("txt_plt_hpvc_legend_cvg", plot_vars)))) +
   scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_unvac_females", plot_vars))) +
   scale_x_continuous(breaks = seq(min(plot_hpv1$year), max(plot_hpv1$year), by = 1)) +
   scale_y_continuous(name = get_text2("txt_plt_unvac_females", plot_vars), labels = scales::label_comma(),
@@ -1629,7 +1636,7 @@ if (has_hpv == 1) {
   guides(color = guide_legend(order = 1, nrow = 1),
          fill = guide_legend(order = 2, nrow = 1)) +
   labs(title = hpv_line_plot_title,
-       caption = paste0(get_text2("txt_plt_ia2030_caption", text_vars), "\n", str_glue(get_text2("txt_wuenic_source", text_vars))),
+       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
        x = get_text2("txt_plt_year", plot_vars)) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(),

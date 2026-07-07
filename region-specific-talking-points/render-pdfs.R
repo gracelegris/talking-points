@@ -14,8 +14,6 @@ source(file.path(wd, "main_vars.R"))
 comp_yr <- 2019
 rev_yr <- 2025
 type <- "final" 
-pct_threshold <- 0.10
-n_years_comparison_plot <- 5
 
 ## ── PATHS ───────────────────────────────────────────────────────────────────
 directory <- file.path(RevDir, "unicef-products")
@@ -108,6 +106,9 @@ base_map_df <- readRDS(file.path(directory, type, "utils/unicef-base-map.rds")) 
 ## unique regions ----
 regions <- unique(wuenic_dta$Region)
 
+unicef <- wuenic_dta %>% filter(lvl_2 == "region_unicef_ops")
+unicef_regions <- unique(unicef$Region)
+
 # read in excel translation table
 translation_table <- read_csv(file.path(directory, "dummy/country-specific-charts/translation-table_charts_ctry.csv")) %>%
   janitor::clean_names() %>%
@@ -144,6 +145,48 @@ for (reg in regions) {
       directory, type, "talking-points/region-specific-talking-points/reports/translated", 
       paste0("Talking-points_", reg, "_", language, ".pdf")
     )
+    
+    # render
+    suppressWarnings(
+      rmarkdown::render(
+        file.path(directory, type, "talking-points/region-specific-talking-points/wuenic_regional_tp_translated.Rmd"),
+        output_file = output_file,
+        params = list(region = reg, language = language, plot_language = plot_lang), 
+        envir = new.env(), 
+        quiet = TRUE
+      )
+    )
+    
+    message("Report generated: ", output_file)
+  }
+} 
+
+
+# loop to render pdfs for unicef regions to imad_sara folder
+for (reg in unicef_regions) {
+  
+  current_region <- reg
+  
+
+  # set language based on region
+  if (reg %in% c("WCAR", "African Union")) {
+    languages <- c("en", "fr")
+  } else if (reg == "LACR") {
+    languages <- c("en", "es")
+  } else if (reg == "MENA") {
+    languages <- c("en", "ar")
+  } else {
+    languages <- c("en")
+  }
+  
+  for (language in languages) {
+    
+    message("Generating report for: ", reg, " (Language: ", language, ")")
+    
+    # arabic plot exception
+    plot_lang <- if (language == "ar") "en" else language
+    
+    output_file <- file.path(RevDir, "unicef-products/imad_sara/talking-points", paste0("Talking-points_", reg, "_", language, ".pdf"))
     
     # render
     suppressWarnings(
