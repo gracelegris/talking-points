@@ -22,19 +22,9 @@ txt_general_dropout_diff_lower_1 <- "{abs(diff)} percentage point lower than in 
 txt_general_dropout_diff_lower_pp <- "{abs(diff)} percentage points lower than in {comp_yr} ({.[[comparison_col]]}%)"
 txt_general_dropout_diff_same <- "the same as in {comp_yr}"
 
-# # ── POPULATION CONTEXT ────────────────────────────────────────────────────────
-# txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
-# txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
-# txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
-
 txt_cvg_increased_short <- "increased from {minusone_lbl}% in {rev_yr-1} to {recent_lbl}% in {rev_yr}"
 txt_cvg_decreased_short <- "declined from {minusone_lbl}% in {rev_yr-1} to {recent_lbl}% in {rev_yr}"
 txt_cvg_same_short      <- "was the same in {rev_yr} as it was in {rev_yr-1} ({minusone_lbl}%)"
-
-# txt_plt_hpv_both_unvac <- "HPV1 and HPVc coverage and unvaccinated females"
-# txt_plt_hpv_both_only <- "HPV1 and HPVc coverage"
-# txt_plt_hpv1_unvac <- "HPV1 coverage and unvaccinated females"
-# txt_plt_hpv1_only <- "HPV1 coverage"
 
 # ── OVERVIEW ──────────────────────────────────────────────────────────────────
 txt_ovw_vax_gt90              <- "A total of {n_vax_total} childhood vaccines are tracked for {the_ctry_name}; of these, {n_vax_gt90} reached the 90% coverage target or higher in {rev_yr}."
@@ -53,9 +43,6 @@ txt_ovw_ctry_level_failed_one      <- "There was one country that did not meet t
 txt_ovw_ctry_level_failed_multiple <- "There were {nctry_lt90} countries that did not meet the target coverage across all antigens: {failed_list}."
 txt_ovw_ctry_level_failed_none     <- "All countries successfully met the target coverage across all antigens."
 txt_contents                  <- "Contents"
-# txt_word_none                 <- "none"
-# txt_word_out                  <- "out"
-# txt_word_and                  <- " and "
 txt_was_1_country             <- "was {nctry_lt90} country"
 txt_were_n_countries          <- "were {nctry_lt90} countries"
 txt_were_no_countries         <- "were no countries"
@@ -196,13 +183,6 @@ txt_hpv_hpvc_increased        <- "Coverage of the last dose (HPVc) increased fro
 txt_hpv_hpvc_decreased        <- "Coverage of the last dose (HPVc) decreased from {hpvc_comp_pct}% in {hpv_comp_yr} to {hpvc_rev_pct}% in {hpv_rev_yr}."
 txt_hpv_hpvc_constant         <- "Coverage of the last dose (HPVc) remained constant at {hpvc_rev_pct}% in {hpv_rev_yr}."
 
-# txt_hpv_gt90_below80_up       <- "HPVc coverage remains well below the IA2030 target of 90%, though it is trending upward."
-# txt_hpv_gt90_below80          <- "HPVc coverage remains well below the IA2030 target of 90%."
-# txt_hpv_gt90_near_up          <- "HPVc coverage is approaching the IA2030 target of 90% and is trending upward."
-# txt_hpv_gt90_near             <- "HPVc coverage is approaching but has not yet reached the IA2030 target of 90%."
-# txt_hpv_gt90_achieved         <- "HPVc coverage has reached the IA2030 target of 90%."
-# txt_hpv_gt90_exceeded         <- "HPVc coverage has exceeded the IA2030 target of 90%."
-
 txt_hpv_changed               <- "{chng} from {minusone_val}% in {hpv_rev_yr-1} to {rev_val}% in {hpv_rev_yr}"
 txt_hpv_constant              <- "{chng} at {rev_val}% between {hpv_rev_yr-1} and {hpv_rev_yr}"
 
@@ -244,14 +224,6 @@ txt_cvg_higher_than_baseline  <- "was higher than in {comp_yr}"
 txt_cvg_decreased             <- "decreased from {cvg_comp}% in {comp_yr} to {cvg_rev}% in {rev_yr}"
 txt_cvg_increased             <- "increased from {cvg_comp}% in {comp_yr} to {cvg_rev}% in {rev_yr}"
 
-# txt_vacc_increased            <- "increased"
-# txt_vacc_decreased            <- "decreased"
-# txt_vacc_same                 <- "remained the same"
-# txt_vacc_constant             <- "remained constant"
-# txt_moreless_fewer            <- "fewer"
-# txt_moreless_more             <- "more"
-# txt_moreless_same             <- "same"
-
 txt_unvac_stable    <- "remained relatively stable between {comp_yr} and {rev_yr} at {recent_lbl}"
 txt_unvac_declined  <- "declined {abs_pchng}% from {comparison_lbl} in {comp_yr} to {recent_lbl} in {rev_yr}"
 txt_unvac_increased <- "increased {abs_pchng}% from {comparison_lbl} in {comp_yr} to {recent_lbl} in {rev_yr}"
@@ -287,6 +259,56 @@ txt_plt_ovw_heatmap_title     <- "Vaccine coverage (%), {ctry_name}, 2000–{rev
 txt_plt_ovw_heatmap_title_reg <- "Vaccine coverage (%), {region_translated} Region, 2000–{rev_yr}"
 txt_plt_ovw_line_title        <- "Vaccine coverage over time, {ctry_name}, 2000–{rev_yr}"
 
+txt_hpv_line_title_no_hpvc_no_unvac <- "HPV1 coverage over time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
+txt_hpv_line_title_no_hpvc_unvac    <- "HPV1 coverage and unvaccinated females\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
+txt_hpv_line_title_hpvc_no_unvac    <- "HPV1 and HPVc coverage\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
+txt_hpv_line_title_hpvc_unvac       <- "HPV1 and HPVc coverage and unvaccinated females\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
+txt_plt_ovw_heatmap_title_vax <- "{toupper(v)} coverage, by country, {region_translated} Region, 2000-{rev_yr}"
+txt_plt_ovw_heatmap_caption_vax <- "Note: Countries ordered based on descending {toupper(v)} coverage in {rev_yr}."
+txt_map_coverage_title        <- "{toupper(v)} coverage (%), {region_translated}, {rev_yr}"
+txt_map_disclaimer            <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision.\nNote: This map is stylized and based on an approximate scale. This map does not reflect a position\nby UNICEF or WHO on the legal status of any country or\nterritory or the delimitation of any frontiers."
+txt_map_dtp1_title            <- "DTP1 coverage (%), by country, {region_translated} Region, {rev_yr}"
+txt_map_dtp3_title            <- "DTP3 coverage (%), by country, {region_translated} Region, {rev_yr}"
+txt_map_mcv1_title            <- "MCV1 coverage (%), by country, {region_translated} Region, {rev_yr}"
+txt_dtp1_heatmap_title        <- "DTP1 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
+txt_dtp3_heatmap_title        <- "DTP3 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
+txt_mcv1_heatmap_title        <- "MCV1 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
+txt_map_title_full            <- "<span style='color:#1CABE2;'>{ctry_name}</span> in the '{region_for_country}' region"
+txt_wuenic_source             <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision."
+
+txt_appendix_wuenic_revision  <- str_glue("These talking points present the latest WUENIC estimates (published 15 July {rev_yr+1}).")
+
+# ── COLLECT ALL txt_ VARIABLES ────────────────────────────────────────────────
+text_vars_en <- mget(ls(pattern = "^txt_"))
+
+
+
+
+
+# txt_surv_inf_vax_1       <- "Vaccinating approximately the same number of children as currently reached will be sufficient due to the anticipated decrease or relatively small increases in the birth cohort."
+# txt_surv_inf_vax_2       <- "Maintaining current coverage requires vaccinating an increasing number of children, which will require substantial increases in immunization programme and health system capacity."
+# txt_surv_inf_vax_3       <- "For vaccine coverage to increase, the number of children vaccinated needs to either increase or decline at a slower rate than the decline in surviving infant target population."
+
+# txt_plt_hpv_both_unvac <- "HPV1 and HPVc coverage and unvaccinated females"
+# txt_plt_hpv_both_only <- "HPV1 and HPVc coverage"
+# txt_plt_hpv1_unvac <- "HPV1 coverage and unvaccinated females"
+# txt_plt_hpv1_only <- "HPV1 coverage"
+
+# txt_hpv_gt90_below80_up       <- "HPVc coverage remains well below the IA2030 target of 90%, though it is trending upward."
+# txt_hpv_gt90_below80          <- "HPVc coverage remains well below the IA2030 target of 90%."
+# txt_hpv_gt90_near_up          <- "HPVc coverage is approaching the IA2030 target of 90% and is trending upward."
+# txt_hpv_gt90_near             <- "HPVc coverage is approaching but has not yet reached the IA2030 target of 90%."
+# txt_hpv_gt90_achieved         <- "HPVc coverage has reached the IA2030 target of 90%."
+# txt_hpv_gt90_exceeded         <- "HPVc coverage has exceeded the IA2030 target of 90%."
+
+# txt_vacc_increased            <- "increased"
+# txt_vacc_decreased            <- "decreased"
+# txt_vacc_same                 <- "remained the same"
+# txt_vacc_constant             <- "remained constant"
+# txt_moreless_fewer            <- "fewer"
+# txt_moreless_more             <- "more"
+# txt_moreless_same             <- "same"
+
 # txt_plt_ia2030_caption        <- "Dotted line shows the IA2030 target of 90% coverage"
 # txt_plt_reg_comp_subtitle     <- "Dashed line = regional average"
 # txt_plt_dtp1_legend_cvg       <- "DTP1 coverage"
@@ -307,23 +329,6 @@ txt_plt_ovw_line_title        <- "Vaccine coverage over time, {ctry_name}, 2000�
 # txt_plt_unvac_undervac        <- "Un- or under-vaccinated children"
 # txt_plt_reg_comp_peers        <- "Peers"
 
-txt_hpv_line_title_no_hpvc_no_unvac <- "HPV1 coverage over time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
-txt_hpv_line_title_no_hpvc_unvac    <- "HPV1 coverage and unvaccinated females\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
-txt_hpv_line_title_hpvc_no_unvac    <- "HPV1 and HPVc coverage\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
-txt_hpv_line_title_hpvc_unvac       <- "HPV1 and HPVc coverage and unvaccinated females\nover time, {regn}, {first_hpv_year}–{hpv_rev_yr}"
-txt_plt_ovw_heatmap_title_vax <- "{toupper(v)} coverage, by country, {region_translated} Region, 2000-{rev_yr}"
-txt_plt_ovw_heatmap_caption_vax <- "Note: Countries ordered based on descending {toupper(v)} coverage in {rev_yr}."
-txt_map_coverage_title        <- "{toupper(v)} coverage (%), {region_translated}, {rev_yr}"
-txt_map_disclaimer            <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision.\nNote: This map is stylized and based on an approximate scale. This map does not reflect a position\nby UNICEF or WHO on the legal status of any country or\nterritory or the delimitation of any frontiers."
-txt_map_dtp1_title            <- "DTP1 coverage (%), by country, {region_translated} Region, {rev_yr}"
-txt_map_dtp3_title            <- "DTP3 coverage (%), by country, {region_translated} Region, {rev_yr}"
-txt_map_mcv1_title            <- "MCV1 coverage (%), by country, {region_translated} Region, {rev_yr}"
-txt_dtp1_heatmap_title        <- "DTP1 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
-txt_dtp3_heatmap_title        <- "DTP3 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
-txt_mcv1_heatmap_title        <- "MCV1 coverage (%), by country, {region_translated} Region, 2000–{rev_yr}"
-txt_map_title_full            <- "<span style='color:#1CABE2;'>{ctry_name}</span> in the '{region_for_country}' region"
-txt_wuenic_source             <- "Source: WHO/UNICEF estimates of national immunization coverage, {rev_yr} revision."
-
 # ── SECTION HEADERS ──────────────────────────────────────────────────────────
 # txt_sec_overview              <- "Overview"
 # txt_sec_banner_title          <- "WUENIC Talking Points"
@@ -343,8 +348,6 @@ txt_wuenic_source             <- "Source: WHO/UNICEF estimates of national immun
 # txt_appendix_definitions_header <- "Definitions of immunization terms:"
 # txt_appendix_resources_header <- "Additional resources:"
 
-txt_appendix_wuenic_revision  <- str_glue("These talking points present the latest WUENIC estimates (published 15 July {rev_yr+1}).")
-
 # ── DEFINITIONS ───────────────────────────────────────────────────────────────
 # txt_def_bcg   <- "Bacillus Calmette-Guerin (BCG): vaccine against tuberculosis"
 # txt_def_hepbb <- "Hepatitis B birth dose, given within 24 hours after birth (HepBB)"
@@ -358,6 +361,3 @@ txt_appendix_wuenic_revision  <- str_glue("These talking points present the late
 # txt_def_yfv   <- "Yellow Fever vaccine (YFV)"
 # txt_def_menga <- "Meningococcal A vaccine (MengA)"
 # txt_def_hpv   <- "Human Papillomavirus vaccine, first dose (HPV1) and last dose (HPVc)"
-
-# ── COLLECT ALL txt_ VARIABLES ────────────────────────────────────────────────
-text_vars_en <- mget(ls(pattern = "^txt_"))
