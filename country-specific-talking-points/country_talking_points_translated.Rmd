@@ -148,8 +148,8 @@ cat(paste0('
   valign=center
 ]
 \\begin{center}
-  {\\LARGE \\color{white} \\textbf{', get_text2("txt_sec_banner_title", text_vars), ': ', t_lookup(country_lookup, language), '}} \\hspace{0.2cm}\\includegraphics[height=0.6cm]{', flag_path, '}\\\\[0.4em]
-  {\\large \\color{white} ', get_text2("txt_sec_banner_revision", text_vars), ' ', rev_yr, '}
+  {\\LARGE \\color{white} \\textbf{', t_lookup("txt_sec_banner_title", language), ': ', t_lookup(country_lookup, language), '}} \\hspace{0.2cm}\\includegraphics[height=0.6cm]{', flag_path, '}\\\\[0.4em]
+  {\\large \\color{white} ', t_lookup("txt_sec_banner_revision", language), ' ', rev_yr, '}
 \\end{center}
 \\end{tcolorbox}
 \\vspace{0.4in}
@@ -275,9 +275,9 @@ vacc <- vax %>%
   mutate(
     pchng     = round((.data[[recent_col]] / .data[[comparison_col]] - 1) * 100, 1),
     pchng_txt = case_when(
-      pchng > 0 ~ get_text2("txt_vacc_increased", text_vars),
-      pchng < 0 ~ get_text2("txt_vacc_decreased", text_vars),
-      TRUE      ~ get_text2("txt_vacc_same", text_vars))) %>%
+      pchng > 0 ~ t_lookup("txt_vacc_increased", language),
+      pchng < 0 ~ t_lookup("txt_vacc_decreased", language),
+      TRUE      ~ t_lookup("txt_vacc_same", language))) %>%
   label_vals_millions(.[[comparison_col]], "vacc_comp_yr_lbl") %>%
   label_vals_millions(.[[recent_col]], "vacc_rev_yr_lbl")
 
@@ -292,13 +292,13 @@ tgt <- vax %>%
   mutate(
     diff     = .data[[recent_col]] - .data[[comparison_col]],
     moreless = case_when(
-      diff < 0 ~ get_text2("txt_moreless_fewer", text_vars),
-      diff > 0 ~ get_text2("txt_moreless_more",  text_vars),
-      TRUE ~ get_text2("txt_moreless_same", text_vars)),
+      diff < 0 ~ t_lookup("txt_moreless_fewer", language),
+      diff > 0 ~ t_lookup("txt_moreless_more",  language),
+      TRUE ~ t_lookup("txt_moreless_same", language)),
     to_vax = case_when(
-      diff < 0 ~ get_text2("txt_surv_inf_vax_3", text_vars),
-      diff > 0 & diff < 1000000 ~ get_text2("txt_surv_inf_vax_1", text_vars),
-      diff > 0 & diff >= 1000000 ~ get_text2("txt_surv_inf_vax_2", text_vars))) %>%
+      diff < 0 ~ t_lookup("txt_surv_inf_vax_3", language),
+      diff > 0 & diff < 1000000 ~ t_lookup("txt_surv_inf_vax_1", language),
+      diff > 0 & diff >= 1000000 ~ t_lookup("txt_surv_inf_vax_2", language))) |> 
   label_vals(diff, "diff_lbl") %>%
   mutate(diff_abs = abs(diff)) %>%
   label_vals_millions(diff_abs, "diff_abs_lbl")
@@ -391,13 +391,13 @@ bullet_ovw_3 <- str_glue(
 
 \newpage
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_overview", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_overview", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:overview}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_overview", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_overview", language), "}"))
 ```
 
 - `r bullet_ovw_1`
@@ -459,7 +459,7 @@ heatmap_overview <- heatmap_ovw_df %>%
     values = scales::rescale(c(0, 59, 69, 79, 88, 90, 100)),
     guide = "colorbar",
     limits = c(0, 100),
-    name    = get_text2("txt_plt_cvg_pct_legend", plot_vars),
+    name    = t_lookup("txt_plt_cvg_pct_legend", language),
     breaks = c(0, 60, 70, 80, 90, 100),
     labels = c("0", "60", "70", "80", "90", "100"))
 ```
@@ -705,18 +705,18 @@ scale_factor <- max(plot_dtp1$coverage, na.rm = TRUE) /
                 max(plot_zd_dtp$unvaccinated, na.rm = TRUE)
 
 dtp_plot <- ggplot() +
-  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated, fill = get_text2("txt_plt_dtp1_legend_zd", plot_vars)), alpha = 0.4, width = 0.6) +
-  geom_line(data = plot_dtp1, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_dtp1_legend_cvg", plot_vars)), size = 1.5) +
-  geom_point(data = plot_dtp1, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_dtp1_legend_cvg", plot_vars)), size = 3) +
+  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated, fill = t_lookup("txt_plt_dtp1_legend_zd", language)), alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_dtp1, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp1_legend_cvg", language)), size = 1.5) +
+  geom_point(data = plot_dtp1, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp1_legend_cvg", language)), size = 3) +
   geom_hline(yintercept = 90 / scale_factor, linetype = "dashed") +
-  scale_color_manual(name = NULL, values = setNames("#1CABE2", get_text2("txt_plt_dtp1_legend_cvg", plot_vars))) +
-  scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_dtp1_legend_zd", plot_vars))) +
+  scale_color_manual(name = NULL, values = setNames("#1CABE2", t_lookup("txt_plt_dtp1_legend_cvg", language))) +
+  scale_fill_manual(name = NULL, values = setNames("#E2231A", t_lookup("txt_plt_dtp1_legend_zd", language))) +
   scale_x_continuous(breaks = seq(min(plot_dtp1$year), max(plot_dtp1$year), 1)) +
-  scale_y_continuous(name = get_text2("txt_plt_zd_children", plot_vars), labels = scales::label_comma(),
-    sec.axis = sec_axis(~ . * scale_factor, name = get_text2("txt_plt_cvg_pct", plot_vars), breaks = seq(0, 100, 25))) +
+  scale_y_continuous(name = t_lookup("txt_plt_zd_children", language), labels = scales::label_comma(),
+    sec.axis = sec_axis(~ . * scale_factor, name = t_lookup("txt_plt_cvg_pct", language), breaks = seq(0, 100, 25))) +
   labs(title = str_glue(get_text2("txt_plt_dtp1_title", plot_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
-       x = get_text2("txt_plt_year", plot_vars)) +
+       caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x = t_lookup("txt_plt_year", language)) +
   guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
@@ -727,13 +727,13 @@ dtp_plot <- ggplot() +
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_dtp1", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp1", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:dtp1}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_dtp1", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp1", language), "}"))
 ```
 
 - `r bullet_dtp1_1`
@@ -878,18 +878,18 @@ scale_factor <- max(plot_dtp3$coverage, na.rm = TRUE) /
                 max(plot_zd_dtp3$unvaccinated, na.rm = TRUE)
 
 dtp3_plot <- ggplot() +
-  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated, fill = get_text2("txt_plt_dtp3_legend_unvac", plot_vars)), alpha = 0.4, width = 0.6) +
-  geom_line(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_dtp3_legend_cvg", plot_vars)), size = 1.5) +
-  geom_point(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_dtp3_legend_cvg", plot_vars)), size = 3) +
+  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated, fill = t_lookup("txt_plt_dtp3_legend_unvac", language)), alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 1.5) +
+  geom_point(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 3) +
   geom_hline(yintercept = 90 / scale_factor, linetype = "dashed") +
-  scale_color_manual(name = NULL, values = setNames("#1CABE2", get_text2("txt_plt_dtp3_legend_cvg", plot_vars))) +
-  scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_dtp3_legend_unvac", plot_vars))) +
+  scale_color_manual(name = NULL, values = setNames("#1CABE2", t_lookup("txt_plt_dtp3_legend_cvg", language))) +
+  scale_fill_manual(name = NULL, values = setNames("#E2231A", t_lookup("txt_plt_dtp3_legend_unvac", language))) +
   scale_x_continuous(breaks = seq(min(plot_dtp3$year), max(plot_dtp3$year), 1)) +
-  scale_y_continuous(name = get_text2("txt_plt_unvac_undervac", plot_vars), labels = scales::label_comma(),
-    sec.axis = sec_axis(~ . * scale_factor, name = get_text2("txt_plt_cvg_pct", plot_vars), breaks = seq(0, 100, 25))) +
+  scale_y_continuous(name = t_lookup("txt_plt_unvac_undervac", language), labels = scales::label_comma(),
+    sec.axis = sec_axis(~ . * scale_factor, name = t_lookup("txt_plt_cvg_pct", language), breaks = seq(0, 100, 25))) +
   labs(title = str_glue(get_text2("txt_plt_dtp3_title", plot_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
-       x = get_text2("txt_plt_year", plot_vars), color = NULL) +
+       caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x = t_lookup("txt_plt_year", language), color = NULL) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
@@ -899,13 +899,13 @@ dtp3_plot <- ggplot() +
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_dtp3", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp3", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:dtp3}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_dtp3", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp3", language), "}"))
 ```
 
 - `r bullet_dtp3_1`
@@ -1109,23 +1109,23 @@ scale_factor <- max(plot_mcv1$coverage, na.rm = TRUE) /
                 max(plot_zd_mcv$unvaccinated, na.rm = TRUE)
 
 mcv_plot <- ggplot() +
-  geom_col(data = plot_zd_mcv, aes(x = year, y = unvaccinated, fill = get_text2("txt_plt_mcv_legend_zd", plot_vars)), alpha = 0.4, width = 0.6) +
-  geom_line(data = plot_mcv1, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_mcv1_legend_cvg", plot_vars)), size = 1.5) +
-  geom_point(data = plot_mcv1, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_mcv1_legend_cvg", plot_vars)), size = 3) +
+  geom_col(data = plot_zd_mcv, aes(x = year, y = unvaccinated, fill = t_lookup("txt_plt_mcv_legend_zd", language)), alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_mcv1, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_mcv1_legend_cvg", language)), size = 1.5) +
+  geom_point(data = plot_mcv1, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_mcv1_legend_cvg", language)), size = 3) +
   { if ("mcv2" %in% available_vaccines) list(
-      geom_line(data = plot_mcv2, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_mcv2_legend_cvg", plot_vars)), size = 1.5),
-      geom_point(data = plot_mcv2, aes(x = year, y = coverage / scale_factor, color = get_text2("txt_plt_mcv2_legend_cvg", plot_vars)), size = 3)) } +
+      geom_line(data = plot_mcv2, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_mcv2_legend_cvg", language)), size = 1.5),
+      geom_point(data = plot_mcv2, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_mcv2_legend_cvg", language)), size = 3)) } +
   geom_hline(yintercept = 90 / scale_factor, linetype = "dashed") +
   scale_color_manual(name = NULL, values = setNames(c("#1CABE2", "#6A1E74"),
-    c(get_text2("txt_plt_mcv1_legend_cvg", plot_vars), get_text2("txt_plt_mcv2_legend_cvg", plot_vars)))) +
-  scale_fill_manual(name = NULL, values = setNames("#E2231A", get_text2("txt_plt_mcv_legend_zd", plot_vars))) +
+    c(t_lookup("txt_plt_mcv1_legend_cvg", language), t_lookup("txt_plt_mcv2_legend_cvg", language)))) +
+  scale_fill_manual(name = NULL, values = setNames("#E2231A", t_lookup("txt_plt_mcv_legend_zd", language))) +
   scale_x_continuous(breaks = seq(min(plot_mcv1$year), max(plot_mcv1$year), 1)) +
-  scale_y_continuous(name = get_text2("txt_plt_mcv_legend_zd", plot_vars), labels = scales::label_comma(),
-    sec.axis = sec_axis(~ . * scale_factor, name = get_text2("txt_plt_cvg_pct", plot_vars), breaks = seq(0, 100, 25))) +
+  scale_y_continuous(name = t_lookup("txt_plt_mcv_legend_zd", language), labels = scales::label_comma(),
+    sec.axis = sec_axis(~ . * scale_factor, name = t_lookup("txt_plt_cvg_pct", language), breaks = seq(0, 100, 25))) +
   guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
   labs(title = str_glue(get_text2("txt_plt_mcv_title", plot_vars)),
-       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
-       x = get_text2("txt_plt_year", plot_vars)) +
+       caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       x = t_lookup("txt_plt_year", language)) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
@@ -1135,13 +1135,13 @@ mcv_plot <- ggplot() +
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_mcv", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_mcv", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:mcv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_mcv", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_mcv", language), "}"))
 ```
 
 - `r bullet_mcv_1`
@@ -1208,13 +1208,13 @@ if (has_hpv_data && nrow(hpv_df) > 0) {
     if (is.na(d)) {
       str_glue(get_text2("txt_hpv_single_year_hpv1", text_vars))
     } else if (d > 0) {
-      str_glue(get_text2("txt_vacc_increased", text_vars),
+      str_glue(t_lookup("txt_vacc_increased", language),
                cvg_prev = df_row[[local_minusone_col]], cvg_rev = df_row[[local_recent_col]])
     } else if (d < 0) {
-      str_glue(get_text2("txt_vacc_decreased", text_vars),
+      str_glue(t_lookup("txt_vacc_decreased", language),
                cvg_prev = df_row[[local_minusone_col]], cvg_rev = df_row[[local_recent_col]])
     } else {
-      str_glue(get_text2("txt_vacc_constant", text_vars),
+      str_glue(t_lookup("txt_vacc_constant", language),
                cvg_rev = df_row[[local_recent_col]])
     }
   }
@@ -1254,17 +1254,17 @@ if (has_hpv_data && nrow(hpv_df) > 0) {
       gt90 = case_when(
         is.na(.data[[local_recent_col]]) ~ NA_character_,
         .data[[local_recent_col]] < 80  & chng == "increased" ~ 
-          str_glue(get_text2("txt_hpv_gt90_below80_up", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_below80_up", language), primary_hpv_label = primary_hpv_label),
         .data[[local_recent_col]] < 80  & chng != "increased" ~ 
-          str_glue(get_text2("txt_hpv_gt90_below80", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_below80", language), primary_hpv_label = primary_hpv_label),
         .data[[local_recent_col]] %in% 80:89 & chng == "increased" ~ 
-          str_glue(get_text2("txt_hpv_gt90_near_up", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_near_up", language), primary_hpv_label = primary_hpv_label),
         .data[[local_recent_col]] %in% 80:89 & chng != "increased" ~ 
-          str_glue(get_text2("txt_hpv_gt90_near", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_near", language), primary_hpv_label = primary_hpv_label),
         .data[[local_recent_col]] == 90 ~ 
-          str_glue(get_text2("txt_hpv_gt90_achieved", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_achieved", language), primary_hpv_label = primary_hpv_label),
         .data[[local_recent_col]] > 90  ~ 
-          str_glue(get_text2("txt_hpv_gt90_exceeded", text_vars), primary_hpv_label = primary_hpv_label),
+          str_glue(t_lookup("txt_hpv_gt90_exceeded", language), primary_hpv_label = primary_hpv_label),
         TRUE ~ NA_character_
       )
     )
@@ -1367,69 +1367,69 @@ if (has_hpv_data) {
     { if (has_hpv1 && nrow(plot_hpv1) > 1) list(
       geom_line(data = plot_hpv1,
                 aes(x = year, y = coverage,
-                    color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
+                    color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                 size = 1.5),
       geom_point(data = plot_hpv1,
                  aes(x = year, y = coverage,
-                     color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
+                     color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                  size = 3))
       else if (has_hpv1 && nrow(plot_hpv1) == 1)
         geom_point(data = plot_hpv1,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpv1_legend_cvg", plot_vars)),
+                       color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                    size = 3) } +
     { if (has_hpvc && nrow(plot_hpvc) > 1) list(
       geom_line(data = plot_hpvc,
                 aes(x = year, y = coverage,
-                    color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
+                    color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                 size = 1.5),
       geom_point(data = plot_hpvc,
                  aes(x = year, y = coverage,
-                     color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
+                     color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                  size = 3))
       else if (has_hpvc && nrow(plot_hpvc) == 1)
         geom_point(data = plot_hpvc,
                    aes(x = year, y = coverage,
-                       color = get_text2("txt_plt_hpvc_legend_cvg", plot_vars)),
+                       color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                    size = 3) } +
     { if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1)
       geom_col(data = plot_zd_hpv,
                aes(x = year, y = unvaccinated * hpv_scale_factor,
-                   fill = get_text2("txt_plt_hpv_legend_unvac", plot_vars)),
+                   fill = t_lookup("txt_plt_hpv_legend_unvac", language)),
                alpha = 0.4, width = 0.6) } +
     geom_hline(yintercept = 90, linetype = "dashed") +
     scale_color_manual(name   = NULL,
                        values = setNames(
                          c("#1CABE2", "#6A1E72"),
-                         c(get_text2("txt_plt_hpv1_legend_cvg", plot_vars),
-                           get_text2("txt_plt_hpvc_legend_cvg", plot_vars)))) +
+                         c(t_lookup("txt_plt_hpv1_legend_cvg", language),
+                           t_lookup("txt_plt_hpvc_legend_cvg", language)))) +
     scale_fill_manual(name   = NULL,
                       values = setNames("#E2231A",
-                                        get_text2("txt_plt_hpv_legend_unvac", plot_vars))) +
+                                        t_lookup("txt_plt_hpv_legend_unvac", language))) +
     scale_x_continuous(breaks = seq(min(plot_hpv_ref$year),
                                     max(plot_hpv_ref$year), 1)) +
     { if (has_hpv_num_unvac)
       scale_y_continuous(
         limits = c(0, 100),
-        name   = get_text2("txt_plt_unvac_females", plot_vars),
+        name   = t_lookup("txt_plt_unvac_females", language),
         sec.axis = sec_axis(
           ~ . / hpv_scale_factor,
-          name   = get_text2("txt_plt_cvg_pct", plot_vars),
+          name   = t_lookup("txt_plt_cvg_pct", language),
           labels = scales::label_comma()
         )
       )
       else
         scale_y_continuous(limits = c(0, 100),
-                           name   = get_text2("txt_plt_cvg_pct", plot_vars)) } +
+                           name   = t_lookup("txt_plt_cvg_pct", language)) } +
     { if (has_hpv_num_unvac)
       guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) } +
-    labs(title = str_glue(get_text2(title_key, plot_vars), ctry_name = ctry_name, first_hpv_year = first_hpv_year, hpv_rev_yr = hpv_rev_yr),
+    labs(title = str_glue(t_lookup(title_key, language), ctry_name = ctry_name, first_hpv_year = first_hpv_year, hpv_rev_yr = hpv_rev_yr),
          caption = paste0(
-           get_text2("txt_plt_ia2030_caption", plot_vars), "\n",
+           t_lookup("txt_plt_ia2030_caption", language), "\n",
            if (!has_hpvc)         paste0(get_text2("txt_hpv_no_hpvc_caption",  plot_vars), "\n") else "",
            if (!has_hpv_num_unvac) paste0(get_text2("txt_hpv_no_unvac_caption", plot_vars), "\n") else "",
            str_glue(get_text2("txt_wuenic_source", plot_vars))),
-         x = get_text2("txt_plt_year", plot_vars),
+         x = t_lookup("txt_plt_year", language),
          color = NULL) +
     theme_unicef() +
     theme(panel.grid.minor   = element_blank(),
@@ -1443,13 +1443,13 @@ if (has_hpv_data) {
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_hpv", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_hpv", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:hpv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_hpv", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_hpv", language), "}"))
 ```
 
 ```{r hpv-bullets, results='asis', echo=FALSE}
@@ -1606,7 +1606,7 @@ hpvc_suffix <- if (has_hpv_data && has_hpvc_for_rev_yr)
   paste0(", ", get_text2("txt_reg_comp_hpvc_suffix", text_vars)) else ""
 
 # translated legend text
-legend_labels <- c("focal" = ctry_name, "peer" = get_text2("txt_plt_reg_comp_peers", text_vars))
+legend_labels <- c("focal" = ctry_name, "peer" = t_lookup("txt_plt_reg_comp_peers", language))
 
 plt_reg_comp <- reg_comp %>%
   mutate(country = reorder_within(country, coverage, vaccine)) %>%
@@ -1626,10 +1626,10 @@ plt_reg_comp <- reg_comp %>%
     labels = legend_labels,
     name = ""
   ) +
-  labs(x        = get_text2("txt_plt_cvg_pct", plot_vars),
+  labs(x        = t_lookup("txt_plt_cvg_pct", language),
        y        = "",
        title    = str_glue(get_text2("txt_plt_reg_comp_title", plot_vars)),
-       subtitle = get_text2("txt_plt_reg_comp_subtitle", plot_vars),
+       subtitle = t_lookup("txt_plt_reg_comp_subtitle", language),
        caption  = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   theme_unicef() +
   theme(legend.position  = "bottom",
@@ -1649,14 +1649,14 @@ region_comparison_string <- ifelse(has_hpvc, str_glue(get_text2("txt_reg_comp_in
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_reg_comp", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_reg_comp", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:regcomp}{}")
 cat(paste0("\\addcontentsline{toc}{section}{",
-           get_text2("txt_sec_reg_comp", text_vars), "}"))
+           t_lookup("txt_sec_reg_comp", language), "}"))
 ```
 
 \vspace{1em}
@@ -1746,7 +1746,7 @@ plt_add_vax <- add_vax_heatmap_df %>%
     values = scales::rescale(c(0, 59, 69, 79, 88, 90, 100)),
     guide = "colorbar",
     limits = c(0, 100),
-    name    = get_text2("txt_plt_cvg_pct_legend", plot_vars),
+    name    = t_lookup("txt_plt_cvg_pct_legend", language),
     breaks = c(0, 60, 70, 80, 90, 100),
     labels = c("0", "60", "70", "80", "90", "100"))
 ```
@@ -1754,14 +1754,14 @@ plt_add_vax <- add_vax_heatmap_df %>%
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_add_vax", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_add_vax", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:addvax}{}")
 cat(paste0("\\addcontentsline{toc}{section}{",
-           get_text2("txt_sec_add_vax", text_vars), "}"))
+           t_lookup("txt_sec_add_vax", language), "}"))
 ```
 
 ```{r additional-vax-bullets, results='asis', echo=FALSE}
@@ -1822,25 +1822,25 @@ cat(appendix_fontsize)
 ```
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_appendix", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_appendix", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:overview}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_appendix", language), "}"))
 ```
 
 \vspace{0.8em}
 
-\textcolor{cyan}{\large `r get_text2("txt_appendix_wuenic_header", text_vars)`}
+\textcolor{cyan}{\large `r t_lookup("txt_appendix_wuenic_header", language)`}
 
 \vspace{0.8em}
 
-`r get_text2("txt_appendix_wuenic_body", text_vars)`
+`r t_lookup("txt_appendix_wuenic_body", language)`
 
 \vspace{0.3em}
-`r get_text2("txt_appendix_methods_header", text_vars)`:
+`r t_lookup("txt_appendix_methods_header", language)`:
 
 \begin{itemize}
   \item \begin{sloppypar}
@@ -1860,7 +1860,7 @@ cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", tex
 
 \vspace{1.3em}
 
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r get_text2("txt_appendix_definitions_header", text_vars)`}
+\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_definitions_header", language)`}
 
 \vspace{0.3em}
 
@@ -1868,18 +1868,18 @@ cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", tex
 # definitions are stored as a named list in txt_vars_talking_points.R
 # and retrieved here so they translate properly
 defs <- list(
-  get_text2("txt_def_bcg",   text_vars),
-  get_text2("txt_def_hepbb", text_vars),
-  get_text2("txt_def_dtp",   text_vars),
-  get_text2("txt_def_hepb3", text_vars),
-  get_text2("txt_def_hib3",  text_vars),
-  get_text2("txt_def_ipv",   text_vars),
-  get_text2("txt_def_mcv",   text_vars),
-  get_text2("txt_def_rotac", text_vars),
-  get_text2("txt_def_pcv3",  text_vars),
-  get_text2("txt_def_yfv",   text_vars),
-  get_text2("txt_def_menga", text_vars),
-  get_text2("txt_def_hpv",   text_vars))
+  t_lookup("txt_def_bcg",   language),
+  t_lookup("txt_def_hepbb", language),
+  t_lookup("txt_def_dtp",   language),
+  t_lookup("txt_def_hepb3", language),
+  t_lookup("txt_def_hib3",  language),
+  t_lookup("txt_def_ipv",   language),
+  t_lookup("txt_def_mcv",   language),
+  t_lookup("txt_def_rotac", language),
+  t_lookup("txt_def_pcv3",  language),
+  t_lookup("txt_def_yfv",   language),
+  t_lookup("txt_def_menga", language),
+  t_lookup("txt_def_hpv",   language))
 
 for (d in defs) {
   cat(paste0("-   ", d, "\n"))
@@ -1888,4 +1888,4 @@ for (d in defs) {
 ```
 
 \vspace{1.3em}
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r get_text2("txt_appendix_resources_header", text_vars)`} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
+\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_resources_header", language)`} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
