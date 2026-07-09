@@ -119,20 +119,20 @@ for (reg in regions) {
   
   current_region <- reg
   
-  #languages <- c("en", "fr", "es", "pt", "ar")  # list of languages to render
+  languages <- c("en", "fr", "es", "pt", "ar")  # list of languages to render
   
   # set language based on region
-    # if (reg %in% c("WCAR", "African Union")) {
-    #   languages <- c("en", "fr")
-    # } else if (reg == "LACR") {
-    #   languages <- c("en", "es")
-    # } else if (reg == "MENA") {
-    #   languages <- c("en", "ar")
-    # } else {
-    #   languages <- c("en")
-    # }
+  if (reg %in% c("WCAR", "African Union")) {
+    languages <- c("en", "fr")
+  } else if (reg == "LACR") {
+    languages <- c("en", "es")
+  } else if (reg == "MENA") {
+    languages <- c("en", "ar")
+  } else {
+    languages <- c("en")
+  }
   
-  languages <- "en"
+  #languages <- "en"
   
   for (language in languages) {
     
@@ -163,44 +163,44 @@ for (reg in regions) {
 
 
 # loop to render pdfs for unicef regions to imad_sara folder
-for (reg in unicef_regions) {
-  
-  current_region <- reg
-  
-
-  # set language based on region
-  if (reg %in% c("WCAR", "African Union")) {
-    languages <- c("en", "fr")
-  } else if (reg == "LACR") {
-    languages <- c("en", "es")
-  } else if (reg == "MENA") {
-    languages <- c("en", "ar")
-  } else {
-    languages <- c("en")
-  }
-  
-  for (language in languages) {
-    
-    message("Generating report for: ", reg, " (Language: ", language, ")")
-    
-    # arabic plot exception
-    plot_lang <- if (language == "ar") "en" else language
-    
-    output_file <- file.path(RevDir, "unicef-products/imad_sara/talking-points", paste0("Talking-points_", reg, "_", language, ".pdf"))
-    
-    # render
-    suppressWarnings(
-      rmarkdown::render(
-        file.path(directory, type, "talking-points/region-specific-talking-points/wuenic_regional_tp_translated.Rmd"),
-        output_file = output_file,
-        params = list(region = reg, language = language, plot_language = plot_lang), 
-        envir = new.env(), 
-        quiet = TRUE
-      )
-    )
-    
-    message("Report generated: ", output_file)
-  }
-} 
-
-message("All reports generated successfully!")
+# for (reg in unicef_regions) {
+#   
+#   current_region <- reg
+#   
+# 
+#   # set language based on region
+#   if (reg %in% c("WCAR", "African Union")) {
+#     languages <- c("en", "fr")
+#   } else if (reg == "LACR") {
+#     languages <- c("en", "es")
+#   } else if (reg == "MENA") {
+#     languages <- c("en", "ar")
+#   } else {
+#     languages <- c("en")
+#   }
+#   
+#   for (language in languages) {
+#     
+#     message("Generating report for: ", reg, " (Language: ", language, ")")
+#     
+#     # arabic plot exception
+#     plot_lang <- if (language == "ar") "en" else language
+#     
+#     output_file <- file.path(RevDir, "unicef-products/imad_sara/talking-points", paste0("Talking-points_", reg, "_", language, ".pdf"))
+#     
+#     # render
+#     suppressWarnings(
+#       rmarkdown::render(
+#         file.path(directory, type, "talking-points/region-specific-talking-points/wuenic_regional_tp_translated.Rmd"),
+#         output_file = output_file,
+#         params = list(region = reg, language = language, plot_language = plot_lang), 
+#         envir = new.env(), 
+#         quiet = TRUE
+#       )
+#     )
+#     
+#     message("Report generated: ", output_file)
+#   }
+# } 
+# 
+# message("All reports generated successfully!")

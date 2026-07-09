@@ -215,9 +215,9 @@ vacc <- vax %>%
   select(lvl_1, lvl_2, Region, iso3c, country, year, vaccine, vaccinated) %>%
   pivot_wider(., names_from = year, values_from = vaccinated) %>%
   mutate(pchng = round((.[[9]] / .[[7]] - 1) * 100, 1),
-         pchng_txt = case_when(pchng > 0 ~ get_text2("txt_vacc_increased", text_vars),
-                               pchng < 0 ~ get_text2("txt_vacc_decreased", text_vars),
-                               TRUE ~ get_text2("txt_vacc_same", text_vars))) %>%
+         pchng_txt = case_when(pchng > 0 ~ t_lookup("txt_vacc_increased", language),
+                               pchng < 0 ~ t_lookup("txt_vacc_decreased", language),
+                               TRUE ~ t_lookup("txt_vacc_same", language))) %>%
   label_vals_millions(.[[7]], 'vacc_comp_yr_lbl') %>%
   label_vals_millions(.[[9]], 'vacc_rev_yr_lbl')
 
@@ -232,12 +232,12 @@ tgt <- vax %>%
     select(lvl_1, lvl_2, Region, iso3c, country, year, vaccine, target) %>%
   pivot_wider(., names_from = year, values_from = target) %>%
   mutate(diff = .[[9]] - .[[7]],
-         moreless = case_when(diff < 0 ~ get_text2("txt_moreless_fewer", text_vars),
-                              diff > 0 ~ get_text2("txt_moreless_more", text_vars),
-                              TRUE ~ get_text2("txt_moreless_same", text_vars)),
-         to_vax = case_when(diff < 0 ~ get_text2("txt_surv_inf_vax_3", text_vars),
-                              diff > 0 & diff < 1000000 ~ get_text2("txt_surv_inf_vax_1", text_vars),
-                              diff > 0 & diff >= 1000000 ~ get_text2("txt_surv_inf_vax_2", text_vars))) %>%
+         moreless = case_when(diff < 0 ~ t_lookup("txt_moreless_fewer", language),
+                              diff > 0 ~ t_lookup("txt_moreless_more", language),
+                              TRUE ~ t_lookup("txt_moreless_same", language)),
+         to_vax = case_when(diff < 0 ~ t_lookup("txt_surv_inf_vax_3", language),
+                              diff > 0 & diff < 1000000 ~ t_lookup("txt_surv_inf_vax_1", language),
+                              diff > 0 & diff >= 1000000 ~ t_lookup("txt_surv_inf_vax_2", language))) %>%
     label_vals(diff, 'diff_lbl') %>%
   mutate(diff_abs = abs(diff)) %>%
   label_vals_millions(diff_abs, 'diff_abs_lbl')
@@ -512,16 +512,16 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
     plt_vax_df <- df %>% filter(country == regn, vaccine == v) %>% select(year, coverage, unvaccinated)
 
     if (v == "dtp1") {
-      vax_label  <- get_text2("txt_plt_dtp1_legend_cvg", plot_vars)
-      count_label <- get_text2("txt_plt_dtp1_legend_zd", plot_vars)
+      vax_label  <- t_lookup("txt_plt_dtp1_legend_cvg", language)
+      count_label <- t_lookup("txt_plt_dtp1_legend_zd", language)
       title_tpl   <- get_text2("txt_plt_dtp1_title", plot_vars)
     } else if (v == "dtp3") {
-      vax_label  <- get_text2("txt_plt_dtp3_legend_cvg", plot_vars)
-      count_label <- get_text2("txt_plt_unvac_undervac", plot_vars)
+      vax_label  <- t_lookup("txt_plt_dtp3_legend_cvg", language)
+      count_label <- t_lookup("txt_plt_unvac_undervac", language)
       title_tpl   <- get_text2("txt_plt_dtp3_title", plot_vars)
     } else if (v == "mcv1") {
-      vax_label  <- get_text2("txt_plt_mcv1_legend_cvg", plot_vars)
-      count_label <- get_text2("txt_plt_mcv_legend_zd", plot_vars)
+      vax_label  <- t_lookup("txt_plt_mcv1_legend_cvg", language)
+      count_label <- t_lookup("txt_plt_mcv_legend_zd", language)
       title_tpl   <- get_text2("txt_plt_mcv_title", plot_vars)
     }
 
@@ -540,12 +540,12 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
       scale_color_manual(name = NULL, values = vax_values, breaks = vax_label) +
       scale_fill_manual(name = NULL, values = fill_values, breaks = count_label) +
       guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) +
-      scale_x_continuous(breaks = seq(2000, rev_yr, by = 2)) +
+      scale_x_continuous(breaks = seq(2000, rev_yr, by = 1)) +
       scale_y_continuous(name = count_label, labels = scales::label_comma(),
         sec.axis = sec_axis(~ . * scale_factor, name = get_text2("txt_plt_cvg_pct", plot_vars), breaks = seq(0, 100, 25))) +
       labs(
         title = str_glue(title_tpl, ctry_name = regn, rev_yr = rev_yr),
-        caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+        caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
         x = get_text2("txt_plt_year", plot_vars)
       ) +
       theme_unicef() +
@@ -878,13 +878,13 @@ cvg_v <- cvg %>%
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_dtp1", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp1", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:dtp1}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_dtp1", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp1", language), "}"))
 ```
 
 ```{r, results='asis', echo=FALSE}
@@ -1092,13 +1092,13 @@ unvac_cvg <- unvac_v %>% arrange(desc(.[[9]])) %>% filter(lvl_1 == "country") %>
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_dtp3", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp3", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:dtp3}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_dtp3", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp3", language), "}"))
 ```
 
 \vspace{0.2em}
@@ -1305,13 +1305,13 @@ dropout_txt_key <- paste0("txt_dropout_", dropout_level_val, "_mcv")
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_mcv", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_mcv", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:mcv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_mcv", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_mcv", language), "}"))
 ```
 
 \vspace{0.2em}
@@ -1443,12 +1443,12 @@ if(nrow(hpv_df > 0)) {
     diff = .[[8]] - .[[7]],
     chng = case_when(diff > 0 ~ "increased", diff < 0 ~ "decreased", TRUE ~ "constant"),
     gt90 = case_when(
-      .[[8]] < 80  & chng == "increased" ~ get_text2("txt_hpv_gt90_below80_up", text_vars),
-      .[[8]] < 80  & chng != "increased" ~ get_text2("txt_hpv_gt90_below80", text_vars),
-      .[[8]] >= 80 & .[[8]] <= 89 & chng == "increased" ~ get_text2("txt_hpv_gt90_near_up", text_vars),
-      .[[8]] >= 80 & .[[8]] <= 89 & chng != "increased" ~ get_text2("txt_hpv_gt90_near", text_vars),
-      .[[8]] == 90 ~ get_text2("txt_hpv_gt90_achieved", text_vars),
-      .[[8]] > 90  ~ get_text2("txt_hpv_gt90_exceeded", text_vars),
+      .[[8]] < 80  & chng == "increased" ~ t_lookup("txt_hpv_gt90_below80_up", language),
+      .[[8]] < 80  & chng != "increased" ~ t_lookup("txt_hpv_gt90_below80", language),
+      .[[8]] >= 80 & .[[8]] <= 89 & chng == "increased" ~ t_lookup("txt_hpv_gt90_near_up", language),
+      .[[8]] >= 80 & .[[8]] <= 89 & chng != "increased" ~ t_lookup("txt_hpv_gt90_near", language),
+      .[[8]] == 90 ~ t_lookup("txt_hpv_gt90_achieved", language),
+      .[[8]] > 90  ~ t_lookup("txt_hpv_gt90_exceeded", language),
       TRUE ~ NA_character_
     )
   )
@@ -1497,13 +1497,13 @@ pct_ctry_wuenic_hpv <- round(n_ctry_wuenic_hpv / n_ctry_total * 100, 0)
 \newpage
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_hpv", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_hpv", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:hpv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_hpv", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_hpv", language), "}"))
 ```
 
 \vspace{0.2em}
@@ -1636,7 +1636,7 @@ if (has_hpv == 1) {
   guides(color = guide_legend(order = 1, nrow = 1),
          fill = guide_legend(order = 2, nrow = 1)) +
   labs(title = hpv_line_plot_title,
-       caption = paste0(get_text2("txt_plt_ia2030_caption", plot_vars), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
+       caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
        x = get_text2("txt_plt_year", plot_vars)) +
   theme_unicef() +
   theme(panel.grid.minor = element_blank(),
@@ -1729,7 +1729,7 @@ if (n_bcu_ctry > 0) {
     if (count == 1) {
       str_glue(get_text2(key_single, text_vars), country = names_txt)
     } else {
-      str_glue(get_text2(key_multi, text_vars), count = count, countries = names_txt)
+      str_glue(get_text2(key_multi, text_vars), count = count, countries_list = names_txt)
     }
   }
   recovery_txt1 <- build_text(n_recovered, "txt_bcu_recovered_single", "txt_bcu_recovered_multi",
@@ -1906,25 +1906,25 @@ cat(appendix_fontsize)
 ```
 
 \begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_appendix", text_vars)`}}
+\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_appendix", language)`}}
 \end{tcolorbox}
 
 ```{r, echo=FALSE, results='asis'}
 cat("\\phantomsection")
 cat("\\hypertarget{sec:overview}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", text_vars), "}"))
+cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_appendix", language), "}"))
 ```
 
 \vspace{0.8em}
 
-\textcolor{cyan}{\large `r get_text2("txt_appendix_wuenic_header", text_vars)`}
+\textcolor{cyan}{\large `r t_lookup("txt_appendix_wuenic_header", language)`}
 
 \vspace{0.8em}
 
-`r get_text2("txt_appendix_wuenic_body", text_vars)`
+`r t_lookup("txt_appendix_wuenic_body", language)`
 
 \vspace{0.3em}
-`r get_text2("txt_appendix_methods_header", text_vars)`:
+`r t_lookup("txt_appendix_methods_header", language)`:
 
 \begin{itemize}
   \item \begin{sloppypar}
@@ -1944,7 +1944,7 @@ cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", tex
 
 \vspace{1.3em}
 
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r get_text2("txt_appendix_definitions_header", text_vars)`}
+\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_definitions_header", language)`}
 
 \vspace{0.3em}
 
@@ -1952,18 +1952,18 @@ cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_appendix", tex
 # definitions are stored as a named list in txt_vars_talking_points.R
 # and retrieved here so they translate properly
 defs <- list(
-  get_text2("txt_def_bcg",   text_vars),
-  get_text2("txt_def_hepbb", text_vars),
-  get_text2("txt_def_dtp",   text_vars),
-  get_text2("txt_def_hepb3", text_vars),
-  get_text2("txt_def_hib3",  text_vars),
-  get_text2("txt_def_ipv",   text_vars),
-  get_text2("txt_def_mcv",   text_vars),
-  get_text2("txt_def_rotac", text_vars),
-  get_text2("txt_def_pcv3",  text_vars),
-  get_text2("txt_def_yfv",   text_vars),
-  get_text2("txt_def_menga", text_vars),
-  get_text2("txt_def_hpv",   text_vars))
+  t_lookup("txt_def_bcg",   language),
+  t_lookup("txt_def_hepbb", language),
+  t_lookup("txt_def_dtp",   language),
+  t_lookup("txt_def_hepb3", language),
+  t_lookup("txt_def_hib3",  language),
+  t_lookup("txt_def_ipv",   language),
+  t_lookup("txt_def_mcv",   language),
+  t_lookup("txt_def_rotac", language),
+  t_lookup("txt_def_pcv3",  language),
+  t_lookup("txt_def_yfv",   language),
+  t_lookup("txt_def_menga", language),
+  t_lookup("txt_def_hpv",   language))
 
 for (d in defs) {
   cat(paste0("-   ", d, "\n"))
@@ -1972,4 +1972,4 @@ for (d in defs) {
 ```
 
 \vspace{1.3em}
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r get_text2("txt_appendix_resources_header", text_vars)`} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
+\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_resources_header", language)`} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
