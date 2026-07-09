@@ -163,7 +163,7 @@ txt_hpv_cvg_both              <- "Programme coverage of the first dose of human 
 txt_hpv_gt90                  <- "{gt90_txt}."
 txt_hpv_no_hpvc_one_yr        <- "HPVc (last dose) data is available for {ctry_name} in WUENIC but only for one year, so a year-on-year comparison is not possible and HPVc is not included in this report."
 txt_hpv_no_hpvc_data          <- "HPVc (last dose) coverage data is not available for {ctry_name} in WUENIC data."
-txt_hpv_unvac                 <- "In {hpv_rev_yr}, approximately {hpv1_unvac_lbl} females in {the_ctry_name} did not receive any HPV vaccination."
+txt_hpv_unvac                 <- "In {hpv_rev_yr}, approximately {hpv1_unvac_lbl} females in {the_ctry_name} did not receive any HPV vaccination (unvaccinated)."
 txt_hpv_no_unvac_data         <- "The number of unvaccinated females for HPV in {the_ctry_name} in {hpv_rev_yr} is not available in WUENIC data."
 txt_hpv_reg_rank              <- "Among {region_translated} region peers, {the_ctry_name} ranked {rank} out of {n_peers_hpv} countries in {primary_hpv_label} coverage in {hpv_rev_yr}."
 txt_hpv_intro_partial         <- "In {regn}, {n_ctry_intro} out of {n_ctry_total} countries ({pct_ctry_intro}%) had introduced HPV vaccination by {rev_yr}."
@@ -216,6 +216,14 @@ txt_add_vax_dec_same <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev
 txt_add_vax_sam_inc  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) but higher than in {minusone_col} ({minusone_cvg}%)."
 txt_add_vax_sam_dec  <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) but lower than in {minusone_col} ({minusone_cvg}%)."
 txt_add_vax_sam_same <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%) and the same as in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_single_year <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}."
+txt_add_vax_no_data <- "Coverage data for {vaccine_label} is not available for {rev_yr}."
+txt_add_vax_vscomp_inc <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {comp_yr} ({comp_cvg}%)."
+txt_add_vax_vscomp_dec <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is lower than in {comp_yr} ({comp_cvg}%)."
+txt_add_vax_vscomp_sam <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {comp_yr} ({comp_cvg}%)."
+txt_add_vax_vsminusone_inc <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is higher than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_vsminusone_dec <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is lower than in {minusone_col} ({minusone_cvg}%)."
+txt_add_vax_vsminusone_sam <- "Coverage of {vaccine_label} stood at {rev_cvg}% in {rev_yr}. This is the same as in {minusone_col} ({minusone_cvg}%)."
 
 # ── COVERAGE CHANGE DESCRIPTORS ───────────────────────────────────────────────
 txt_cvg_stable                <- "remained relatively stable, within 1 percentage point of the {comp_yr} level"
@@ -234,15 +242,15 @@ txt_dtp1_zd_ia2030_lower      <- "The percentage of zero-dose children was {abs_
 txt_dtp1_zd_ia2030_same       <- "The percentage of zero-dose children was the same as the IA2030 target in {rev_yr}."
 
 # ── ZERO-DOSE COUNT COMPARISON (2025 vs 2019 and 2024) ────────────────────────
-txt_dtp1_zd_count_inc_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and more than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_inc_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_inc_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_dec_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_dec_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and fewer than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_dec_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_sam_inc  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_sam_dec  <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
-txt_dtp1_zd_count_sam_same <- "There were {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as both the {zd_comp_lbl} in {comp_yr} and the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_inc_inc  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_inc_dec  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_inc_same <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, more than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_inc  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_dec  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_dec_same <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, fewer than the {zd_comp_lbl} in {comp_yr} and about the same as the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_inc  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but more than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_dec  <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as the {zd_comp_lbl} in {comp_yr} but fewer than the {zd_minusone_lbl} in {minusone_col}."
+txt_dtp1_zd_count_sam_same <- "There were approximately {zd_rev_lbl} zero-dose children in {rev_yr}, about the same as both the {zd_comp_lbl} in {comp_yr} and the {zd_minusone_lbl} in {minusone_col}."
 
 # ── POPULATION CONTEXT ────────────────────────────────────────────────────────
 txt_pop_growth_context        <- "Due to population growth of approximately {pop_grwth}% between {comp_yr} and {rev_yr}, DTP3 coverage in {rev_yr} ({ctry_cvg_rev_dtp3}%) was lower than in {comp_yr} ({ctry_cvg_comp_dtp3}%)."

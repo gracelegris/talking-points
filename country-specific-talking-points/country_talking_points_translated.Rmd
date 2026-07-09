@@ -201,7 +201,7 @@ if (current_country == "Russian Federation") {
 }
 
 target_country_geo <- map_df %>% filter(highlight == get_text2("txt_map_country", text_vars))
-is_small_country   <- as.numeric(st_area(target_country_geo)) < 5e9
+is_small_country   <- as.numeric(st_area(target_country_geo)) < 3e10
 if (is_small_country) country_centroid <- st_centroid(target_country_geo)
 
 country_map <- ggplot(map_df) +
@@ -874,26 +874,33 @@ bullet_dtp3_5 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = "D
 plot_dtp3   <- df %>% filter(vaccine == "dtp3") %>% select(year, coverage)
 plot_zd_dtp3 <- df %>% filter(vaccine == "dtp3") %>% select(year, unvaccinated)
 
-scale_factor <- max(plot_dtp3$coverage, na.rm = TRUE) /
-                max(plot_zd_dtp3$unvaccinated, na.rm = TRUE)
+scale_factor <- max(plot_zd_dtp3$unvaccinated, na.rm = TRUE) / 100
 
 dtp3_plot <- ggplot() +
-  geom_col(data = plot_zd_dtp, aes(x = year, y = unvaccinated, fill = t_lookup("txt_plt_dtp3_legend_unvac", language)), alpha = 0.4, width = 0.6) +
-  geom_line(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 1.5) +
-  geom_point(data = plot_dtp3, aes(x = year, y = coverage / scale_factor, color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 3) +
-  geom_hline(yintercept = 90 / scale_factor, linetype = "dashed") +
+  geom_col(data = plot_zd_dtp3, aes(x = year, y = unvaccinated, 
+                                   fill = t_lookup("txt_plt_dtp3_legend_unvac", language)), alpha = 0.4, width = 0.6) +
+  geom_line(data = plot_dtp3, aes(x = year, y = coverage * scale_factor, 
+                                 color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 1.5) +
+  geom_point(data = plot_dtp3, aes(x = year, y = coverage * scale_factor, 
+                                   color = t_lookup("txt_plt_dtp3_legend_cvg", language)), size = 3) +
+  geom_hline(yintercept = 90 * scale_factor, linetype = "dashed") +
   scale_color_manual(name = NULL, values = setNames("#1CABE2", t_lookup("txt_plt_dtp3_legend_cvg", language))) +
   scale_fill_manual(name = NULL, values = setNames("#E2231A", t_lookup("txt_plt_dtp3_legend_unvac", language))) +
   scale_x_continuous(breaks = seq(min(plot_dtp3$year), max(plot_dtp3$year), 1)) +
-  scale_y_continuous(name = t_lookup("txt_plt_unvac_undervac", language), labels = scales::label_comma(),
-    sec.axis = sec_axis(~ . * scale_factor, name = t_lookup("txt_plt_cvg_pct", language), breaks = seq(0, 100, 25))) +
+  scale_y_continuous(name = t_lookup("txt_plt_unvac_undervac", language), 
+                     labels = scales::label_comma(),
+                     sec.axis = sec_axis(~ . / scale_factor, 
+                                         name = t_lookup("txt_plt_cvg_pct", language),
+                                         breaks = seq(0, 100, 25))) +
   labs(title = str_glue(get_text2("txt_plt_dtp3_title", plot_vars)),
        caption = paste0(t_lookup("txt_plt_ia2030_caption", language), "\n", str_glue(get_text2("txt_wuenic_source", plot_vars))),
        x = t_lookup("txt_plt_year", language), color = NULL) +
   theme_unicef() +
-  theme(panel.grid.minor = element_blank(), panel.grid.major.x = element_line(),
+  theme(panel.grid.minor = element_blank(), 
+        panel.grid.major.x = element_line(),
         axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
-        plot.title = element_text(size = 14, hjust = 0.5, face = "bold"), legend.position = "bottom")
+        plot.title = element_text(size = 14, hjust = 0.5, face = "bold"), 
+        legend.position = "bottom")
 ```
 
 \newpage
@@ -1395,7 +1402,7 @@ if (has_hpv_data) {
     { if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1)
       geom_col(data = plot_zd_hpv,
                aes(x = year, y = unvaccinated * hpv_scale_factor,
-                   fill = t_lookup("txt_plt_hpv_legend_unvac", language)),
+                   fill = t_lookup("txt_plt_unvac_undervac_fem", language)),
                alpha = 0.4, width = 0.6) } +
     geom_hline(yintercept = 90, linetype = "dashed") +
     scale_color_manual(name   = NULL,
@@ -1405,13 +1412,13 @@ if (has_hpv_data) {
                            t_lookup("txt_plt_hpvc_legend_cvg", language)))) +
     scale_fill_manual(name   = NULL,
                       values = setNames("#E2231A",
-                                        t_lookup("txt_plt_hpv_legend_unvac", language))) +
+                                        t_lookup("txt_plt_unvac_undervac_fem", language))) +
     scale_x_continuous(breaks = seq(min(plot_hpv_ref$year),
                                     max(plot_hpv_ref$year), 1)) +
     { if (has_hpv_num_unvac)
       scale_y_continuous(
         limits = c(0, 100),
-        name   = t_lookup("txt_plt_unvac_females", language),
+        name   = t_lookup("txt_plt_un_under_vac_females", language),
         sec.axis = sec_axis(
           ~ . / hpv_scale_factor,
           name   = t_lookup("txt_plt_cvg_pct", language),
@@ -1764,43 +1771,85 @@ cat(paste0("\\addcontentsline{toc}{section}{",
            t_lookup("txt_sec_add_vax", language), "}"))
 ```
 
-```{r additional-vax-bullets, results='asis', echo=FALSE}
+``` {r additional-vax-bullets, results='asis', echo=FALSE}
+# helper: classify direction of change between two coverage values
+classify_dir <- function(new_val, old_val, same_label = "same") {
+  case_when(
+    new_val > old_val ~ "inc",
+    new_val < old_val ~ "dec",
+    TRUE               ~ same_label
+  )
+}
+
 for (i in seq_len(nrow(add_vax_df))) {
   row <- add_vax_df[i, ] %>% 
     rename(comp_val = !!sym(comparison_col), rev_val = !!sym(recent_col))
   
-  # get minusone value for this vaccine
-  minusone_val <- row[[as.character(minusone_col)]]
+  # ensure minusone column exists and safely pull value
+  minusone_val <- if (as.character(minusone_col) %in% names(row)) row[[as.character(minusone_col)]] else NA
   
-  # get direction of coverage from comparison year
-  dir_comp <- case_when(
-    row$rev_val > row$comp_val ~ "inc",
-    row$rev_val < row$comp_val ~ "dec",
-    TRUE                       ~ "sam"
-  )
+  has_comp     <- !is.na(row$comp_val)
+  has_minusone <- !is.na(minusone_val)
+  has_rev      <- !is.na(row$rev_val)
   
-  # get direction of coverage from minus one year
-  dir_minusone <- case_when(
-    row$rev_val > minusone_val ~ "inc",
-    row$rev_val < minusone_val ~ "dec",
-    TRUE                       ~ "same"
-  )
+  # --- CASE 1: core recent year data is missing completely -> print "no data" and skip ---
+  if (!has_rev) {
+    raw_sentence <- get_text2("txt_add_vax_no_data", text_vars)
+    bullet_text <- str_glue(raw_sentence,
+                             vaccine_label = coalesce(as.character(row$vaccine_label), "Vaccine"),
+                             rev_yr        = coalesce(as.character(rev_yr), "NA"))
+    cat("- ", bullet_text, "\n\n")
+    next
+  }
   
-  # get translated text and make bullet point
-  target_key <- paste0("txt_add_vax_", dir_comp, "_", dir_minusone)
-  raw_sentence <- get_text2(target_key, text_vars)
-  cat("- ", str_glue(
+  # --- CASE 2: neither comp_yr nor minusone available -> single year only ---
+  if (!has_comp && !has_minusone) {
+    raw_sentence <- get_text2("txt_add_vax_single_year", text_vars)
+    
+  # --- CASE 3: only minusone available (comp_yr missing) -> compare vs minusone only ---
+  } else if (!has_comp && has_minusone) {
+    dir_minusone <- classify_dir(row$rev_val, minusone_val, same_label = "sam")
+    target_key <- paste0("txt_add_vax_vsminusone_", dir_minusone)
+    raw_sentence <- get_text2(target_key, text_vars)
+    
+  # --- CASE 4: only comp_yr available (minusone missing) -> compare vs comp_yr only ---
+  } else if (has_comp && !has_minusone) {
+    dir_comp <- classify_dir(row$rev_val, row$comp_val, same_label = "sam")
+    target_key <- paste0("txt_add_vax_vscomp_", dir_comp)
+    raw_sentence <- get_text2(target_key, text_vars)
+    
+  # --- CASE 5: both comp_yr and minusone available -> full three-way comparison ---
+  } else {
+    dir_comp <- case_when(
+      row$rev_val > row$comp_val ~ "inc",
+      row$rev_val < row$comp_val ~ "dec",
+      TRUE                       ~ "sam"
+    )
+    dir_minusone <- case_when(
+      row$rev_val > minusone_val ~ "inc",
+      row$rev_val < minusone_val ~ "dec",
+      TRUE                       ~ "same"
+    )
+    target_key <- paste0("txt_add_vax_", dir_comp, "_", dir_minusone)
+    raw_sentence <- get_text2(target_key, text_vars)
+  }
+  
+  # safe string glue substitution (coerces any floating NA fields cleanly to text)
+  bullet_text <- str_glue(
     raw_sentence,
-    vaccine_label = row$vaccine_label,
-    rev_cvg       = row$rev_val,
-    rev_yr        = rev_yr,
-    comp_yr       = comp_yr,
-    comp_cvg      = row$comp_val,
-    minusone_col  = minusone_col,
-    minusone_cvg  = minusone_val
-  ), "\n\n")
+    vaccine_label = coalesce(as.character(row$vaccine_label), "Vaccine"),
+    rev_cvg       = coalesce(as.character(row$rev_val), "NA"),
+    rev_yr        = coalesce(as.character(rev_yr), "NA"),
+    comp_yr       = coalesce(as.character(comp_yr), "NA"),
+    comp_cvg      = coalesce(as.character(row$comp_val), "NA"),
+    minusone_col  = coalesce(as.character(minusone_col), "NA"),
+    minusone_cvg  = coalesce(as.character(minusone_val), "NA")
+  )
+  
+  cat("- ", bullet_text, "\n\n")
 }
 ```
+
 
 ```{r ggplot-add-vax, echo=FALSE, fig.width=10, fig.height=4}
 print(plt_add_vax)

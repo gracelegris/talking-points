@@ -91,6 +91,7 @@ base_map_df <- readRDS(file.path(directory, type, "utils", "unicef-base-map.rds"
 
 # unique countries ----
 countries <- unique(wuenic_dta$country)
+countries <- countries[1:195] # remove the regions
 iso3cs <- unique(wuenic_dta$iso3c)
 
 # ── LANGUAGE SETUP ────────────────────────────────────────────────────────────
@@ -176,3 +177,66 @@ for (country in countries) {
 
 message("✅ All reports generated successfully!")
 
+
+### done with morocco french
+for (country in countries) {
+
+  current_country <- country
+  x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
+
+  # 1. Dynamically select languages based on ISO3 lists
+  if (x %in% list_ar) {
+    languages <- c("en", "ar")
+  } else if (x %in% list_fr) {
+    languages <- c("en", "fr")
+  } else if (x %in% list_es) {
+    languages <- c("en", "es")
+  } else if (x %in% list_pt) {
+    languages <- c("en", "pt")
+  } else {
+    languages <- "en"
+  }
+
+  # 2. EXCLUDE "en" since you have already generated them
+  languages_to_run <- setdiff(languages, "en")
+
+  # If there are no other languages left to run (e.g., it was only "en"), skip to the next country
+  if (length(languages_to_run) == 0) next
+
+  for (language in languages_to_run) {
+
+    message("Generating report for: ", country, " (Language: ", language, ")")
+
+    # if the report is in Arabic, hardcode plot labels to English. Otherwise, match the report
+    plot_lang <- if (language == "ar") "en" else language
+
+    final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports",
+                                   paste0(x, "_talking_points_", language, ".pdf"))
+
+    # country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x,
+    #                                  paste0(x, "_talking_points_", language, ".pdf"))
+
+    pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
+    #temp_output_path <- file.path(tempdir(), pdf_filename)
+
+    # pass plot_language in using the params list
+    suppressWarnings(rmarkdown::render(
+      input = file.path(directory, "final/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
+      output_file = final_output_path,
+      # pass both the regular text language and the plot language (english when main language is arabic)
+      params = list(country = current_country, language = language, plot_language = plot_lang),
+      envir = new.env(),
+      quiet = TRUE
+    ))
+
+    #dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
+    #dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
+
+    #file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
+    #file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
+
+    #unlink(temp_output_path)
+
+    message("✅ Reports successfully saved to target destinations for ", x, " (", language, ")")
+  }
+}
