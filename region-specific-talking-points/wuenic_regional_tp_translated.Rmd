@@ -55,6 +55,9 @@ minusone_col <- as.character(rev_yr - 1)
 
 # filter based on selected region
 df <- wuenic_dta %>% filter(Region == current_region) %>% 
+  label_vals_millions(target, "target_lbl") %>%
+  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
+  label_vals_millions(unvaccinated, "unvaccinated_lbl") %>%
   filter(vaccine != "pol3") %>% 
   mutate(region_name = case_when(
     Region == "EAPR" ~ "East Asia and Pacific",
@@ -65,10 +68,35 @@ df <- wuenic_dta %>% filter(Region == current_region) %>%
     Region == "Non-programme" ~ "Non-programme",
     Region == "ROSA" ~ "South Asia",
     Region == "WCAR" ~ "West and Central Africa",
+    Region == "Gavi 57" ~ "Gavi 57",
+    Region == "Never Gavi MICs" ~ "Never Gavi Middle Income Countries",
+    Region == "Gavi HICs" ~ "Gavi High-Income Countries",
+    Region == "Gavi transition" ~ "Gavi Transition Countries",
+    Region == "LICs" ~ "World Bank Low-Income Countries",
+    Region == "UMICs" ~ "World Bank Upper-Middle-Income Countries",
+    Region == "WB HICs" ~ "World Bank High-Income Countries",
+    Region == "LMICs" ~ "World Bank Lower-Middle-Income Countries",
+    Region == "World Bank FCV" ~ "World Bank Fragile, Conflict, and Violence-Affected (FCV) Countries",
+    Region == "World Bank non-FCV" ~ "World Bank Non-FCV Countries (Non-Fragile, Conflict, and Violence-Affected)",
+    Region == "EUR" ~ "WHO European Region",
+    Region == "AFR" ~ "WHO African Region",
+    Region == "AMR" ~ "WHO Region of the Americas",
+    Region == "WPR" ~ "WHO Western Pacific Region",
+    Region == "SEAR" ~ "WHO South-East Asia Region",
+    Region == "WHO FCV" ~ "WHO Fragile, Conflict, and Vulnerable Settings",
+    Region == "WHO non-FCV" ~ "WHO Non-FCV (Fragile, Conflict, and Vulnerable) Settings",
+    Region == "Northern Africa" ~ "Northern Africa",
+    Region == "Southern Africa" ~ "Southern Africa",
+    Region == "Western Africa" ~ "Western Africa",
+    Region == "Central Africa" ~ "Central Africa",
+    Region == "Eastern Africa" ~ "Eastern Africa",
     TRUE ~ Region
   ))
 
-hpv_df <- hpv_dta %>% filter(Region == current_region)
+hpv_df <- hpv_dta %>% filter(Region == current_region) %>% 
+  label_vals_millions(target, "target_lbl") %>%
+  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
+  label_vals_millions(unvaccinated, "unvaccinated_lbl")
 
 ## vars
 regn       <- unique(df$Region)
@@ -77,12 +105,30 @@ regn_name  <- unique(df$region_name)
 wuenic_src <- str_glue("Source: WHO/UNICEF Estimates of National Immunization Coverage, {rev_yr} revision")
 reg_type   <- "region"
 
-region_translated <- t_lookup(region, language)
 
-region_translated_plots <- t_lookup(region, plot_lang)
+if(org %in% c("au", "gavi", "wb", "wb_fcv", "who", "who_fcv", "european_union")) {
+  region_translated_plots <- regn
+  region_translated <- regn
+} else {
+  region_translated_plots <- t_lookup(region, plot_lang)
+  region_translated <- t_lookup(region, language)
+}
+
+if(region %in% c("Western Africa", "Central Africa")) {
+  region_translated_plots <- t_lookup(region, plot_lang)
+}
+
+region_translated_plots <- case_when(
+  regn == "LMICs (Low- and Middle-Income Countries)" ~ "LMICs",
+  regn == "WB HICs (World Bank High-Income Countries)" ~ "WB HICs",
+  regn == "UMICs (World Bank Upper-Middle-Income Countries)" ~ "UMICs",
+  regn == "LICs (World Bank Low-Income Countries)" ~ "LICs",
+  TRUE ~ region_translated_plots
+)
 
 report_title <- str_glue(get_text2("txt_region_banner_title", text_vars), region_translated = region_translated)
-if(reg %in% c("European Union", "Central Africa", "Western Africa", "LMICs", "WB HICs", "UMICs", "LICs", 
+if(reg %in% c("European Union", "Central Africa", "Western Africa", "Eastern Africa", "Northern Africa", "Southern Africa",
+              "LMICs", "WB HICs", "UMICs", "LICs", "World Bank FCV", "World Bank non-FCV", "WHO FCV", "WHO non-FCV",
               "Gavi transition", "Gavi HICs", "Never Gavi MICs", "Gavi 57", "Non-Programme")) {
   report_title <- str_glue(get_text2("txt_region_banner_title_no_parentheses", text_vars))
 }
@@ -1818,7 +1864,7 @@ if (n_bcu_ctry > 0) {
   facet_height_ratios <- ifelse(facet_counts == 0, 0.1, facet_counts)
 
   status_colors <- setNames(
-    c("#00833D", "#FFC20E", "#E2231A"),
+    c("#00833D", "#FFaf00", "#E2231A"),
     c(get_text2("txt_bcu_lbl_recovered", plot_vars), get_text2("txt_bcu_lbl_recovering", plot_vars), get_text2("txt_bcu_lbl_not_recovered", plot_vars))
   )
 
