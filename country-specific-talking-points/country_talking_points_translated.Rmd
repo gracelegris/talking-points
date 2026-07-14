@@ -57,8 +57,15 @@ minusone_col <- as.character(rev_yr - 1)
 # ── COUNTRY DATA ──────────────────────────────────────────────────────────────
 df <- wuenic_dta %>% filter(country == current_country) %>%
   filter(lvl_1 == "country") %>% 
-  filter(!vaccine == "pol3")
-hpv_df <- hpv_dta %>% filter(country == current_country)
+  filter(!vaccine == "pol3") %>% 
+  # new labels
+  label_vals_millions(target, "target_lbl") %>%
+  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
+  label_vals_millions(unvaccinated, "unvaccinated_lbl")
+hpv_df <- hpv_dta %>% filter(country == current_country) %>%
+  label_vals_millions(target, "target_lbl") %>%
+  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
+  label_vals_millions(unvaccinated, "unvaccinated_lbl")
 has_hpv_data <- nrow(hpv_df) > 0
 has_hpvc     <- has_hpv_data && any(hpv_df$vaccine_code == "PRHPVC_F")
 
@@ -1356,6 +1363,9 @@ if (has_hpv_data) {
     select(year, coverage) else NULL
   plot_hpv_ref <- if (has_hpvc) plot_hpvc else plot_hpv1
   
+  min_hpv_year <- min(c(plot_hpv1$year, plot_hpvc$year))
+  max_hpv_year <- max(c(plot_hpv1$year, plot_hpvc$year))
+  
   if (has_hpv_num_unvac) {
     plot_zd_hpv <- hpv_df %>%
       filter(vaccine_code == primary_hpv_code, year >= first_hpv_year) %>%
@@ -1371,40 +1381,40 @@ if (has_hpv_data) {
   )
   
   hpv_plot <- ggplot() +
+    { if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1)
+      geom_col(data = plot_zd_hpv,
+               aes(x = year, y = unvaccinated,
+                   fill = t_lookup("txt_plt_unvac_undervac_fem", language)),
+               alpha = 0.4, width = 0.6) } +
     { if (has_hpv1 && nrow(plot_hpv1) > 1) list(
       geom_line(data = plot_hpv1,
-                aes(x = year, y = coverage,
+                aes(x = year, y = coverage / hpv_scale_factor,
                     color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                 size = 1.5),
       geom_point(data = plot_hpv1,
-                 aes(x = year, y = coverage,
+                 aes(x = year, y = coverage / hpv_scale_factor,
                      color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                  size = 3))
       else if (has_hpv1 && nrow(plot_hpv1) == 1)
         geom_point(data = plot_hpv1,
-                   aes(x = year, y = coverage,
+                   aes(x = year, y = coverage / hpv_scale_factor,
                        color = t_lookup("txt_plt_hpv1_legend_cvg", language)),
                    size = 3) } +
     { if (has_hpvc && nrow(plot_hpvc) > 1) list(
       geom_line(data = plot_hpvc,
-                aes(x = year, y = coverage,
+                aes(x = year, y = coverage / hpv_scale_factor,
                     color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                 size = 1.5),
       geom_point(data = plot_hpvc,
-                 aes(x = year, y = coverage,
+                 aes(x = year, y = coverage / hpv_scale_factor,
                      color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                  size = 3))
       else if (has_hpvc && nrow(plot_hpvc) == 1)
         geom_point(data = plot_hpvc,
-                   aes(x = year, y = coverage,
+                   aes(x = year, y = coverage / hpv_scale_factor,
                        color = t_lookup("txt_plt_hpvc_legend_cvg", language)),
                    size = 3) } +
-    { if (has_hpv_num_unvac && nrow(plot_zd_hpv) > 1)
-      geom_col(data = plot_zd_hpv,
-               aes(x = year, y = unvaccinated * hpv_scale_factor,
-                   fill = t_lookup("txt_plt_unvac_undervac_fem", language)),
-               alpha = 0.4, width = 0.6) } +
-    geom_hline(yintercept = 90, linetype = "dashed") +
+    geom_hline(yintercept = 90 / hpv_scale_factor, linetype = "dashed") +
     scale_color_manual(name   = NULL,
                        values = setNames(
                          c("#1CABE2", "#6A1E72"),
@@ -1413,16 +1423,15 @@ if (has_hpv_data) {
     scale_fill_manual(name   = NULL,
                       values = setNames("#E2231A",
                                         t_lookup("txt_plt_unvac_undervac_fem", language))) +
-    scale_x_continuous(breaks = seq(min(plot_hpv_ref$year),
-                                    max(plot_hpv_ref$year), 1)) +
+    scale_x_continuous(breaks = seq(min_hpv_year, max_hpv_year, 1)) +
     { if (has_hpv_num_unvac)
       scale_y_continuous(
-        limits = c(0, 100),
         name   = t_lookup("txt_plt_un_under_vac_females", language),
+        labels = scales::label_comma(),
         sec.axis = sec_axis(
-          ~ . / hpv_scale_factor,
+          ~ . * hpv_scale_factor,
           name   = t_lookup("txt_plt_cvg_pct", language),
-          labels = scales::label_comma()
+          breaks = seq(0, 100, 25)
         )
       )
       else

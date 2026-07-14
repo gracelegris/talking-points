@@ -32,6 +32,23 @@ source(file.path(utils, "R/slide_production_generic_text.R"))
 
 source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate" = "#80BD41", "Survey" = "#FFC20E")
 
+# ── TRANSLATION LOOKUP HELPER ─────────────────────────────────────────────────
+# returns the translated string for a given key and language, falling back to English
+# uses lookup table "translation-table_charts_ctry.csv" in country-specific-charts folder
+t_lookup <- function(key, lang, table = translation_table) {
+  lang <- tolower(lang)
+  row  <- table[table$key == key, ]
+  if (nrow(row) == 0) {
+    warning("Translation key not found: ", key)
+    return(key)
+  }
+  col <- if (lang %in% colnames(table)) lang else "en"
+  val <- row[[col]]
+  if (is.na(val) || val == "") val <- row[["en"]]
+  # convert literal \n from Excel/CSV to real newline
+  gsub("\\\\n", "\n", val)
+}
+
 # wuenic data
 wuenic_dta <- read_rds(str_glue("{directory}/{type}/01_wuenic_dataset-prep/clean_wuenic_MASTER_{rev_yr}rev.rds")) %>%
   #filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_au_africa")) %>% 
@@ -49,11 +66,7 @@ wuenic_dta <- read_rds(str_glue("{directory}/{type}/01_wuenic_dataset-prep/clean
                              iso3c == "tza" ~ "Tanzania",
                              iso3c == "ven" ~ "Venezuela",
                              iso3c == "tur" ~ "Turkiye",
-                             TRUE ~ country)) %>%
-  # new labels
-  label_vals_millions(target, "target_lbl") %>%
-  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
-  label_vals_millions(unvaccinated, "unvaccinated_lbl") %>%
+                             TRUE ~ country)) %>% 
   rename(Region = lvl_3)
 
 # hpv data
@@ -70,10 +83,7 @@ hpv_dta <- read_excel(file.path(directory, type, "utils", paste0("hpv_estimates_
     vaccine_code == "PRHPVC_F" ~ "HPVc Females",
     TRUE ~ NA_character_)) %>%
   # new labels
-  rename(Region = lvl_3) %>%
-  label_vals_millions(target, "target_lbl") %>%
-  label_vals_millions(vaccinated, "vaccinated_lbl") %>%
-  label_vals_millions(unvaccinated, "unvaccinated_lbl")
+  rename(Region = lvl_3)
 
 # hpv vaccine intro years
 wiise_hpv_intro_yrs <- read_excel(file.path(directory, type, "utils", paste0("wiise-hpv_intro_", rev_yr, "rev.xlsx")))
@@ -123,19 +133,19 @@ for (country in countries) {
   x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
   
   # select languages
-  # if (x %in% list_ar) {
-  #   languages <- c("en", "ar")
-  # } else if (x %in% list_fr) {
-  #   languages <- c("en", "fr")
-  # } else if (x %in% list_es) {
-  #   languages <- c("en", "es")
-  # } else if (x %in% list_pt) {
-  #   languages <- c("en", "pt")
-  # } else {
-  #   languages <- "en"
-  # }
+  if (x %in% list_ar) {
+    languages <- c("en", "ar")
+  } else if (x %in% list_fr) {
+    languages <- c("en", "fr")
+  } else if (x %in% list_es) {
+    languages <- c("en", "es")
+  } else if (x %in% list_pt) {
+    languages <- c("en", "pt")
+  } else {
+    languages <- "en"
+  }
   
-  languages = "en"
+  #languages = "en"
   
   for (language in languages) {
     
@@ -179,64 +189,63 @@ message("✅ All reports generated successfully!")
 
 
 ### done with morocco french
-for (country in countries) {
-
-  current_country <- country
-  x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
-
-  # 1. Dynamically select languages based on ISO3 lists
-  if (x %in% list_ar) {
-    languages <- c("en", "ar")
-  } else if (x %in% list_fr) {
-    languages <- c("en", "fr")
-  } else if (x %in% list_es) {
-    languages <- c("en", "es")
-  } else if (x %in% list_pt) {
-    languages <- c("en", "pt")
-  } else {
-    languages <- "en"
-  }
-
-  # 2. EXCLUDE "en" since you have already generated them
-  languages_to_run <- setdiff(languages, "en")
-
-  # If there are no other languages left to run (e.g., it was only "en"), skip to the next country
-  if (length(languages_to_run) == 0) next
-
-  for (language in languages_to_run) {
-
-    message("Generating report for: ", country, " (Language: ", language, ")")
-
-    # if the report is in Arabic, hardcode plot labels to English. Otherwise, match the report
-    plot_lang <- if (language == "ar") "en" else language
-
-    final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports",
-                                   paste0(x, "_talking_points_", language, ".pdf"))
-
-    # country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x,
-    #                                  paste0(x, "_talking_points_", language, ".pdf"))
-
-    pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
-    #temp_output_path <- file.path(tempdir(), pdf_filename)
-
-    # pass plot_language in using the params list
-    suppressWarnings(rmarkdown::render(
-      input = file.path(directory, "final/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
-      output_file = final_output_path,
-      # pass both the regular text language and the plot language (english when main language is arabic)
-      params = list(country = current_country, language = language, plot_language = plot_lang),
-      envir = new.env(),
-      quiet = TRUE
-    ))
-
-    #dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
-    #dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
-
-    #file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
-    #file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
-
-    #unlink(temp_output_path)
-
-    message("✅ Reports successfully saved to target destinations for ", x, " (", language, ")")
-  }
-}
+# for (country in countries) {
+# 
+#   current_country <- country
+#   x <- wuenic_dta %>% filter(country == current_country) %>% pull(iso3c) %>% unique()
+# 
+#   if (x %in% list_ar) {
+#     languages <- c("en", "ar")
+#   } else if (x %in% list_fr) {
+#     languages <- c("en", "fr")
+#   } else if (x %in% list_es) {
+#     languages <- c("en", "es")
+#   } else if (x %in% list_pt) {
+#     languages <- c("en", "pt")
+#   } else {
+#     languages <- "en"
+#   }
+# 
+#   # exclude english
+#   languages_to_run <- setdiff(languages, "en")
+# 
+#   # if none left, skip to next country
+#   if (length(languages_to_run) == 0) next
+# 
+#   for (language in languages_to_run) {
+# 
+#     message("Generating report for: ", country, " (Language: ", language, ")")
+# 
+#     # if the report is in Arabic, hardcode plot labels to English. Otherwise, match the report
+#     plot_lang <- if (language == "ar") "en" else language
+# 
+#     final_output_path <- file.path(directory, type, "talking-points", "country-specific-talking-points", "reports",
+#                                    paste0(x, "_talking_points_", language, ".pdf"))
+# 
+#     # country_folder_path <- file.path(directory, "final/comms-team/country-specific-products", x,
+#     #                                  paste0(x, "_talking_points_", language, ".pdf"))
+# 
+#     pdf_filename <- paste0(x, "_talking_points_", language, ".pdf")
+#     #temp_output_path <- file.path(tempdir(), pdf_filename)
+# 
+#     # pass plot_language in using the params list
+#     suppressWarnings(rmarkdown::render(
+#       input = file.path(directory, "final/talking-points/country-specific-talking-points/country_talking_points_translated.Rmd"),
+#       output_file = final_output_path,
+#       # pass both the regular text language and the plot language (english when main language is arabic)
+#       params = list(country = current_country, language = language, plot_language = plot_lang),
+#       envir = new.env(),
+#       quiet = TRUE
+#     ))
+# 
+#     #dir.create(dirname(final_output_path), recursive = TRUE, showWarnings = FALSE)
+#     #dir.create(dirname(country_folder_path), recursive = TRUE, showWarnings = FALSE)
+# 
+#     #file.copy(from = temp_output_path, to = final_output_path, overwrite = TRUE)
+#     #file.copy(from = temp_output_path, to = country_folder_path, overwrite = TRUE)
+# 
+#     #unlink(temp_output_path)
+# 
+#     message("✅ Reports successfully saved to target destinations for ", x, " (", language, ")")
+#   }
+# }
