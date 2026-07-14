@@ -14,6 +14,7 @@ library(patchwork)
 library(tidytext)
 
 comp_yr <- 2019
+hpv_rev_yr <- 2025
 rev_yr <- 2025
 type <- "final"
 
@@ -124,6 +125,37 @@ translation_table <- read_csv(str_glue(directory, "/dummy/country-specific-chart
 translation_table_general <- read_csv(str_glue(directory, "/draft/utils/translation_table_general.csv")) %>%
   janitor::clean_names() %>%
   mutate(key = tolower(key))
+
+# vaccine code translation lookup
+vax_translations <- tibble::tribble(
+  ~Vaccine, ~en,     ~fr,     ~es,     ~pt,     ~ar,
+  "BCG",    "BCG",   "BCG",   "BCG",   "BCG",   "BCG",
+  "DTP1",   "DTP1",  "DTC1",  "DTP1",  "DTP1",  "DTP1",
+  "DTP3",   "DTP3",  "DTC3",  "DTP3",  "DTP3",  "DTP3",
+  "HepBB",  "HepBB", "HepBB", "HepBB", "HepBB", "HepBB",
+  "HepB3",  "HepB3", "HepB3", "HepB3", "HepB3", "HepB3",
+  "Hib3",   "Hib3",  "Hib3",  "Hib3",  "Hib3",  "Hib3",
+  "IPV1",   "IPV1",  "VPI1",  "VPI1",  "VPI1",  "IPV1",
+  "IPVC",   "IPVC",  "VPIC",  "VPIC",  "VPIC",  "IPVC",
+  "MCV1",   "MCV1",  "VAR1",  "MCV1",  "MCV1",  "MCV1",
+  "MCV2",   "MCV2",  "VAR2",  "MCV2",  "MCV2",  "MCV2",
+  "PCVC",   "PCVC",  "PCVC",  "PCVC",  "PCVC",  "PCVC",
+  "RotaC",  "RotaC", "RotaC", "RotaC", "RotaC", "RotaC",
+  "RCV1",   "RCV1",  "RCV1",  "RCV1",  "RCV1",  "RCV1",
+  "YFV",    "YFV",   "YFV",   "YFV",   "YFV",   "YFV",
+  "MengA",  "MengA", "MengA", "MengA", "MengA", "MengA",
+  "HPVc",   "HPVc",  "HPVc",  "VPHc",  "HPVc",  "HPVc",
+  "HPVC",   "HPVC",  "HPVC",  "VPHC",  "HPVC",  "HPVC"
+)
+
+# translate vaccine codes based on current language
+translate_vaccine_names <- function(df, lang = language) {
+  lang_col <- if (lang %in% c("fr", "es", "pt", "ar")) lang else "en"
+  lookup_vec <- setNames(vax_translations[[lang_col]], vax_translations$Vaccine)
+  df$vaccine <- dplyr::recode(df$vaccine, !!!lookup_vec)
+  if (is.factor(df$vaccine)) df$vaccine <- droplevels(df$vaccine)
+  return(df)
+}
 
 # new loop that translates plot labels separately 
 # plot labels english if language is arabic, otherwise match the report language

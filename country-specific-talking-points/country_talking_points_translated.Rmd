@@ -137,6 +137,16 @@ country_lookup <- x
 if(country == "Andorra") {
   country_lookup <- "and_code"
 }
+
+dtp1_translated <- ifelse(language == "fr", "DTC1", "DTP1")
+dtp_translated <- ifelse(language == "fr", "DTC", "DTP")
+dtp3_translated <- ifelse(language == "fr", "DTC3", "DTP3")
+mcv1_translated <- ifelse(language == "fr", "VAR1", "MCV1")
+mcv2_translated <- ifelse(language == "fr", "VAR2", "MCV2")
+mcv_translated <- ifelse(language == "fr", "VAR", "MCV")
+hpv_translated <- ifelse(language == "es", "VPH", "HPV")
+hpv1_translated <- ifelse(language == "es", "VPH1", "HPV1")
+hpvc_translated <- ifelse(language == "es", "VPHc", "HPVc")
 ```
 
 
@@ -447,6 +457,8 @@ heatmap_ovw_df$vaccine <- factor(heatmap_ovw_df$vaccine,
              "PCVC","RotaC","IPV1","IPVC","MCV1","RCV1",
              "MCV2","YFV","MengA","HPVc"))
 
+heatmap_ovw_df <- translate_vaccine_names(heatmap_ovw_df)
+
 heatmap_overview <- heatmap_ovw_df %>%
   ggplot(aes(x = year, y = vaccine, fill = coverage)) +
   geom_tile(color = "white") +
@@ -484,12 +496,12 @@ zd <- df %>%
 zd_target <- zd %>%
   filter(year == 2019) %>%
   mutate(unvaccinated = unvaccinated/2,
-         measure = 'IA2030 zero-dose target',
+         measure = t_lookup("plt_ia2030_zd_proj_bar_line_legend1", language),
          year = 2030)
 
 # data for bars
 zd2 <- zd %>%
-  mutate(measure = 'Estimate') %>%
+  mutate(measure = t_lookup("plt_ia2030_zd_proj_bar_line_legend2", language)) %>%
   rbind(zd_target) %>%
   mutate(chart = 'bar',
          unvaccinated = round(unvaccinated, 0))
@@ -546,10 +558,10 @@ plt_ia2030_zd_proj_bar_line <- gg <-
   geom_line(data = zd2 %>% filter(chart=='line'), aes(y=unvaccinated, x=year)) +
   geom_point(data = zd2 %>% filter(chart=='line'), aes(y=unvaccinated, x=year)) +
   # geom_text(data = zd2 %>% filter(chart=='bar'), aes(y=unvaccinated, x=year, label = format(unvaccinated, big.mark=",")), vjust = -0.5, size = 3) +
-  labs(y = get_text2("txt_ia2030_zd_proj_bar_line_y", text_vars),
+  labs(y = get_text2("txt_ia2030_zd_proj_bar_line_y", plot_vars),
        x = "",
-       title = str_glue(get_text2("txt_ia2030_zd_proj_bar_line_title", text_vars)),
-       caption = paste0(str_glue(get_text2("txt_wuenic_source", text_vars)), "\n", str_glue(get_text2("txt_ia2030_zd_proj_bar_line_cpt", text_vars)))) +
+       title = str_glue(get_text2("txt_ia2030_zd_proj_bar_line_title", plot_vars)),
+       caption = paste0(str_glue(get_text2("txt_wuenic_source", plot_vars)), "\n", str_glue(get_text2("txt_ia2030_zd_proj_bar_line_cpt", plot_vars)))) +
   theme_minimal()+
   theme_unicef()+
   theme(legend.position="bottom",
@@ -595,9 +607,9 @@ dropout_dtp <- df %>%
   mutate(
     dropout     = round(((dtp1 - dtp3) / dtp1) * 100, 0),
     dropout_txt = case_when(
-      dropout < 5  ~ str_glue(get_text2("txt_dropout_low", text_vars), vax_pair = "DTP"),
-      dropout <= 10 ~ str_glue(get_text2("txt_dropout_medium", text_vars), vax_pair = "DTP"),
-      dropout > 10 ~ str_glue(get_text2("txt_dropout_high", text_vars), vax_pair = "DTP")
+      dropout < 5  ~ str_glue(get_text2("txt_dropout_low", text_vars), vax_pair = dtp_translated),
+      dropout <= 10 ~ str_glue(get_text2("txt_dropout_medium", text_vars), vax_pair = dtp_translated),
+      dropout > 10 ~ str_glue(get_text2("txt_dropout_high", text_vars), vax_pair = dtp_translated)
     )
   )
 dropout_comp_dtp <- dropout_dtp %>%
@@ -624,7 +636,7 @@ dir_minusone <- case_when(
   TRUE                             ~ "same"
 )
 target_text_key <- paste0("txt_vax_", dir_comp, "_", dir_minusone)
-bullet_dtp1_1 <- str_glue(get_text2(target_text_key, text_vars), vax = "DTP1")
+bullet_dtp1_1 <- str_glue(get_text2(target_text_key, text_vars), vax = dtp1_translated)
 #####
 
 ##### bullet 2 - IA2030 zero-dose comparison + zero-dose counts vs 2019 and 2024
@@ -681,7 +693,7 @@ regional_avg_direction <- case_when(
   ctry_cvg_rev < reg_avg_cvg ~ "txt_cvg_lower_than_regional_avg",
   TRUE                       ~ "txt_cvg_same_as_regional_avg"
 )
-bullet_dtp1_3 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = "DTP1")
+bullet_dtp1_3 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = dtp1_translated)
 
 ##### bullet 4: dropout
 if (dtp1_dropout_row$dropout < 0) {
@@ -800,7 +812,7 @@ dir_minusone <- case_when(
   TRUE                             ~ "same"
 )
 target_text_key <- paste0("txt_vax_", dir_comp, "_", dir_minusone)
-bullet_dtp3_1 <- str_glue(get_text2(target_text_key, text_vars), vax = "DTP3")
+bullet_dtp3_1 <- str_glue(get_text2(target_text_key, text_vars), vax = dtp3_translated)
 #####
 
 # get perc. change and mark if increasing, decreasing, or steady
@@ -855,7 +867,7 @@ trend_2024 <- case_when(
 target_text_key <- paste0("txt_dropout_", trend_comp, "_", trend_2024)
 bullet_dtp3_4 <- str_glue(
   get_text2(target_text_key, text_vars),
-  vax1 = "DTP1", vax2 = "DTP3",
+  vax1 = dtp1_translated, vax2 = dtp3_translated,
   dropout_pct      = current_dropout,
   comp_pct         = comp_dropout,
   minusone_pct     = minusone_dropout,
@@ -874,7 +886,7 @@ regional_avg_direction <- case_when(
   ctry_cvg_rev < reg_avg_cvg ~ "txt_cvg_lower_than_regional_avg",
   TRUE                       ~ "txt_cvg_same_as_regional_avg"
 )
-bullet_dtp3_5 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = "DTP3")
+bullet_dtp3_5 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = dtp3_translated)
 ```
 
 ```{r dtp3-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -1048,7 +1060,7 @@ dir_minusone <- case_when(
   TRUE                             ~ "same"
 )
 target_text_key <- paste0("txt_vax_", dir_comp, "_", dir_minusone)
-bullet_mcv_1 <- str_glue(get_text2(target_text_key, text_vars), vax = "MCV1")
+bullet_mcv_1 <- str_glue(get_text2(target_text_key, text_vars), vax = mcv1_translated)
 #####
 
 direction_of_mcv_change <- if (cvg_mcv1$diff > 0) {
@@ -1089,7 +1101,7 @@ trend_2024 <- case_when(
 target_text_key <- paste0("txt_dropout_", trend_comp, "_", trend_2024)
 bullet_mcv_3 <- str_glue(
   get_text2(target_text_key, text_vars),
-  vax1 = "DTP1", vax2 = "MCV1",
+  vax1 = dtp1_translated, vax2 = mcv1_translated,
   dropout_pct      = current_dropout,
   comp_pct         = comp_dropout,
   minusone_pct     = minusone_dropout,
@@ -1110,7 +1122,7 @@ regional_avg_direction <- case_when(
   ctry_cvg_rev < reg_avg_cvg ~ "txt_cvg_lower_than_regional_avg",
   TRUE                       ~ "txt_cvg_same_as_regional_avg"
 )
-bullet_mcv_5 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = "MCV1")
+bullet_mcv_5 <- str_glue(get_text2(regional_avg_direction, text_vars), vax = mcv1_translated)
 ```
 
 ```{r mcv-line-plot, echo=FALSE, warning=FALSE, message=FALSE}
@@ -1366,11 +1378,32 @@ if (has_hpv_data) {
   min_hpv_year <- min(c(plot_hpv1$year, plot_hpvc$year))
   max_hpv_year <- max(c(plot_hpv1$year, plot_hpvc$year))
   
+  has_hpv_num_unvac <- sum(!is.na(hpv_df$unvaccinated)) > 1
+    
   if (has_hpv_num_unvac) {
     plot_zd_hpv <- hpv_df %>%
       filter(vaccine_code == primary_hpv_code, year >= first_hpv_year) %>%
       select(year, unvaccinated)
     hpv_scale_factor <- 100 / max(plot_zd_hpv$unvaccinated, na.rm = TRUE)
+    hpv_unvac <- hpv_df %>%
+    filter(year == rev_yr) %>%
+    select(iso3c, country, vaccine_code, unvaccinated) %>%
+    distinct(vaccine_code, .keep_all = TRUE) %>% 
+    pivot_wider(names_from = vaccine_code, values_from = unvaccinated)
+
+  # Safe generation if pivot_wider returns an empty dataframe structure
+  if (nrow(hpv_unvac) == 0) {
+    hpv_unvac <- tibble(PRHPVC_F = NA_real_, PRHPV1_F = NA_real_)
+  } else {
+    if (!"PRHPVC_F" %in% names(hpv_unvac)) hpv_unvac$PRHPVC_F <- NA_real_
+    if (!"PRHPV1_F" %in% names(hpv_unvac)) hpv_unvac$PRHPV1_F <- NA_real_
+  }
+
+  hpv_unvac <- hpv_unvac %>%
+    mutate(diff = PRHPVC_F - PRHPV1_F) %>%
+    label_vals_millions(PRHPVC_F, "PRHPVC_F_lbl") %>%
+    label_vals_millions(PRHPV1_F, "PRHPV1_F_lbl") %>%
+    label_vals_millions(diff,     "diff_lbl")
   }
   
   title_key <- case_when(
@@ -1568,12 +1601,55 @@ if (hpv_intro_flag == 0) {
     }
   }
 
-  if (has_hpv_num_unvac) {
-    cat("- ", str_glue(get_text2("txt_hpv_unvac", text_vars),
-      hpv1_unvac_lbl = hpv_unvac$PRHPV1_F_lbl, rev_yr = rev_yr), "\n\n", sep = "")
-  } else {
-    cat("- ", str_glue(get_text2("txt_hpv_no_unvac_data", text_vars)), "\n\n", sep = "")
-  }
+  # ── 1. CHECK UNVACCINATED DATA AVAILABILITY ──────────────────────────────────
+hpv_unvac_years_avail <- hpv_df %>% filter(!is.na(unvaccinated)) %>% pull(year) %>% unique()
+has_hpv_unvac_data   <- length(hpv_unvac_years_avail) > 0
+hpv_unvac_is_rev_yr  <- rev_yr %in% hpv_unvac_years_avail
+
+# Use rev_yr if available, otherwise fall back to most recent year with data
+hpv_unvac_year <- if (has_hpv_unvac_data) {
+  if (hpv_unvac_is_rev_yr) rev_yr else max(hpv_unvac_years_avail)
+} else {
+  NA_real_
+}
+
+# data from target year
+hpv_unvac <- hpv_df %>%
+  filter(year == hpv_unvac_year) %>%
+  select(iso3c, country, vaccine_code, unvaccinated) %>%
+  distinct(vaccine_code, .keep_all = TRUE) %>%
+  pivot_wider(names_from = vaccine_code, values_from = unvaccinated)
+
+# see if data is empty
+if (nrow(hpv_unvac) == 0) {
+  hpv_unvac <- tibble(PRHPVC_F = NA_real_, PRHPV1_F = NA_real_)
+} else {
+  if (!"PRHPVC_F" %in% names(hpv_unvac)) hpv_unvac$PRHPVC_F <- NA_real_
+  if (!"PRHPV1_F" %in% names(hpv_unvac)) hpv_unvac$PRHPV1_F <- NA_real_
+}
+
+hpv_unvac <- hpv_unvac %>%
+  mutate(diff = PRHPVC_F - PRHPV1_F) %>%
+  label_vals_millions(PRHPVC_F, "PRHPVC_F_lbl") %>%
+  label_vals_millions(PRHPV1_F, "PRHPV1_F_lbl") %>%
+  label_vals_millions(diff,     "diff_lbl")
+
+# lookups
+hpv1_unvac_lbl <- if (has_hpv_unvac_data) hpv_unvac$PRHPV1_F_lbl[[1]] else NA_character_
+hpv_rev_yr     <- rev_yr
+
+# build bullets
+hpv_unvac_bullet <- if (!has_hpv_unvac_data) {
+  str_glue(get_text2("txt_hpv_no_unvac_data", text_vars))
+} else if (hpv_unvac_is_rev_yr) {
+  str_glue(get_text2("txt_hpv_unvac", text_vars))
+} else {
+  str_glue(get_text2("txt_hpv_unvac_diff_fallback_yr", text_vars))
+}
+
+if (!is.na(hpv_unvac_bullet)) {
+  cat("- ", hpv_unvac_bullet, "\n\n", sep = "")
+}
 }
 
 if (exists("reg_rank_hpv") && nrow(reg_rank_hpv) > 0) {
@@ -1624,9 +1700,17 @@ hpvc_suffix <- if (has_hpv_data && has_hpvc_for_rev_yr)
 # translated legend text
 legend_labels <- c("focal" = ctry_name, "peer" = t_lookup("txt_plt_reg_comp_peers", language))
 
+reg_comp <- translate_vaccine_names(reg_comp)
+reg_avg <- translate_vaccine_names(reg_avg)
+
 plt_reg_comp <- reg_comp %>%
-  mutate(country = reorder_within(country, coverage, vaccine)) %>%
-  ggplot(aes(x = coverage, y = country, colour = highlight_type, size = highlight_type)) +
+  mutate(country_label = if_else(
+    highlight_type == "focal",
+    paste0("<span style='color:#E2231A;'><b>", country, "</b></span>"),
+    country
+  )) %>%
+  mutate(country_label = reorder_within(country_label, coverage, vaccine)) %>%
+  ggplot(aes(x = coverage, y = country_label, colour = highlight_type, size = highlight_type)) +
   geom_point() +
   geom_vline(data = reg_avg, aes(xintercept = avg),
              linetype = "dashed", colour = "grey50", linewidth = 1.5) +
@@ -1649,9 +1733,11 @@ plt_reg_comp <- reg_comp %>%
        caption  = str_glue(get_text2("txt_wuenic_source", plot_vars))) +
   theme_unicef() +
   theme(legend.position  = "bottom",
+        strip.background   = element_rect(fill = "#0058AB", color = NA),
+        strip.text.x        = element_text(color = "white"),
         strip.text       = element_text(face = "bold"),
         panel.grid.minor = element_blank(),
-        axis.text.y      = element_text(size = 9))
+        axis.text.y      = ggtext::element_markdown(size = 9))
 ```
 
 ```{r calc-height, echo=FALSE}
@@ -1704,6 +1790,8 @@ print(plt_reg_comp)
 ```{r setup-additional-vax, include=FALSE}
 add_vax <- c("bcg","hib3","hepb3","ipv1","pcvc","rotac")
 
+ipv1_translated <- ifelse(language %in% c("fr", "es", "pt"), "VPI1", "IPV1")
+
 add_vax_df <- df %>%
   filter(
     vaccine %in% add_vax,
@@ -1719,8 +1807,8 @@ add_vax_df <- df %>%
       vaccine == "bcg"   ~ "BCG",
       vaccine == "hib3"  ~ "Hib3",
       vaccine == "hepb3" ~ "HepB3",
-      vaccine == "ipv1"  ~ "IPV1",
-      vaccine == "pcvc"  ~ "PCV3",
+      vaccine == "ipv1"  ~ ipv1_translated,
+      vaccine == "pcvc"  ~ "PCVC",
       vaccine == "rotac" ~ "RotaC",
       TRUE ~ toupper(vaccine)
     ),
@@ -1737,8 +1825,8 @@ add_vax_heatmap_df <- df %>%
   filter(vaccine %in% add_vax, year >= 2000) %>%
   mutate(vaccine_label = case_when(
     vaccine == "bcg"   ~ "BCG",   vaccine == "hib3"  ~ "Hib3",
-    vaccine == "hepb3" ~ "HepB3", vaccine == "ipv1"  ~ "IPV1",
-    vaccine == "pcvc"  ~ "PCV3",  vaccine == "rotac" ~ "RotaC",
+    vaccine == "hepb3" ~ "HepB3", vaccine == "ipv1"  ~ ipv1_translated,
+    vaccine == "pcvc"  ~ "PCVC",  vaccine == "rotac" ~ "RotaC",
     TRUE ~ toupper(vaccine)))
 
 plt_add_vax <- add_vax_heatmap_df %>%
