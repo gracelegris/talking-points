@@ -124,21 +124,25 @@ translation_table <- read_csv(file.path(directory, "dummy/country-specific-chart
   janitor::clean_names() %>%
   mutate(key = tolower(key))
 
+#regions <- c("LACR", "AMR", "UMICs", "Never Gavi MICs", "World Bank non-FCV", "WHO non-FCV")
+
 # render pdfs
 for (reg in regions) {
   
   current_region <- reg
   
   # set language based on region
-  # if (reg %in% c("WCAR", "Western Africa", "Central Africa")) {
-  #   languages <- c("en", "fr")
-  # } else if (reg %in% c("LACR", "AMR")) {
-  #   languages <- c("en", "es")
-  # } else if (reg == "MENA") {
-  #   languages <- c("en", "ar")
-  # } else {
-  #   languages <- c("en")
-  # }
+  if (reg %in% c("WCAR", "Western Africa", "Central Africa")) {
+    languages <- c("en", "fr")
+  } else if (reg %in% c("LACR", "AMR")) {
+    languages <- c("en", "es")
+  } else if (reg == "MENA") {
+    languages <- c("en", "ar")
+  } else {
+    languages <- c("en")
+  }
+  
+  filter_regn <- wuenic_dta %>% filter(Region == reg) %>% filter(lvl_1 == "region") %>% select(country) %>% distinct() %>% pull()
   
   org <- case_when(
     reg %in% c("ROSA", "ECAR", "MENA", "Non-programme", "ESAR", "LACR", "WCAR", "EAPR") ~ "unicef",
@@ -152,7 +156,7 @@ for (reg in regions) {
     TRUE ~ NA_character_
   )
   
-  languages <- "en"
+  #languages <- "en"
   
   for (language in languages) {
     
