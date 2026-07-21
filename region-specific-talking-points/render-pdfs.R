@@ -32,25 +32,14 @@ source(file.path(utils, "R/label_vals.R"))
 #source(file.path(dqfolder, "load_data.R"))
 
 source_colors <- c("WUENIC" = "#0083CF", "Admin" = "#6A1E74", "Official Estimate" = "#80BD41", "Survey" = "#FFC20E")
-
-# add WHO regions, all african union regions, wb fragile conflict violence (FCV), and who fcv, 
-# other african unions in english, 
-
-#   "unicef",
-#   "wb",
-#   "wb_fcv",  - Countries with fragility, conflict and violence-affected (FCV) environments - WOrld Bank
-#   "gavi",
-#   "au",
-#   "who",  - AMR (Spanish)
-#   "who_fcv",  (fragile, conflict and vulnerable settings (FCV)
-#   "european_union"
-#   )
   
-# WHO region of the americas in spanish 
+# WUENIC data
 wuenic_dta <- read_rds(file.path(directory, type, paste0("01_wuenic_dataset-prep/clean_wuenic_MASTER_", rev_yr, "rev.rds"))) %>%
   filter(lvl_2 %in% c("region_unicef_ops", "region_au", "region_gavi_transition", "region_european_union", "region_wb",
-                      "region_wb_fcv", "region_who", "region_who_fcv"),
+                      "region_wb_fcv", "region_who", "region_who_fcv", "region_who_subregion"),
          year >= 2000) %>%
+  # filter(lvl_2 %in% c("region_unicef_ops_new"),
+  #        year >= 2000) %>%
   mutate(country = case_when(iso3c == "bol" ~ "Bolivia",
                              iso3c == "cod" ~ "DRC",
                              iso3c == "fsm" ~ "Micronesia",
@@ -73,6 +62,7 @@ wuenic_dta <- read_rds(file.path(directory, type, paste0("01_wuenic_dataset-prep
     lvl_2 == "region_wb_fcv" & Region == "non-FCV countries" ~ "World Bank non-FCV",
     lvl_2 == "region_who_fcv" & Region == "non-FCV countries" ~ "WHO non-FCV",
     lvl_2 == "region_who_fcv" & Region == "FCV countries" ~ "WHO FCV",
+    lvl_2 == "region_who_subregion" & Region == "AFRO-East & South" ~ "AFRO-East and South",
     TRUE ~ Region
   )) %>% 
   mutate(country = case_when(
@@ -82,10 +72,14 @@ wuenic_dta <- read_rds(file.path(directory, type, paste0("01_wuenic_dataset-prep
   ))
 
 # hpv data
-hpv_dta <- read_excel(file.path(directory, type, paste0("talking-points/region-specific-talking-points/utils/hpv_estimates_wuenic", hpv_rev_yr, "rev.xlsx"))) %>%
+hpv_dta <- read_excel(file.path(utils, paste0("hpv_estimates_wuenic", hpv_rev_yr, "rev.xlsx"))) %>%
   filter(vaccine_code %in% c("PRHPV1_F", "PRHPVC_F"),
-         lvl_2 %in% c("region_unicef_ops", "region_au", "region_gavi_transition", "region_european_union", "region_wb"),
+         lvl_2 %in% c("region_unicef_ops", "region_au", "region_gavi_transition", "region_european_union", "region_wb",
+                      "region_wb_fcv", "region_who", "region_who_fcv", "region_who_subregion"),
          year >= 2000) %>%
+  # filter(vaccine_code %in% c("PRHPV1_F", "PRHPVC_F"),
+  #        lvl_2 %in% c("region_unicef_ops_new"),
+  #        year >= 2000) %>%
   clean_reg_names() %>% 
   mutate(vaccine = case_when(
     vaccine_code == "PRHPV1_F" ~ "HPV1 Females",
@@ -100,6 +94,7 @@ hpv_dta <- read_excel(file.path(directory, type, paste0("talking-points/region-s
     lvl_2 == "region_wb_fcv" & Region == "non-FCV countries" ~ "World Bank non-FCV",
     lvl_2 == "region_who_fcv" & Region == "non-FCV countries" ~ "WHO non-FCV",
     lvl_2 == "region_who_fcv" & Region == "FCV countries" ~ "WHO FCV",
+    lvl_2 == "region_who_subregion" & Region == "AFRO-East & South" ~ "AFRO-East and South",
     TRUE ~ Region
   )) %>% 
   mutate(country = case_when(
@@ -108,8 +103,33 @@ hpv_dta <- read_excel(file.path(directory, type, paste0("talking-points/region-s
     TRUE ~ country
   ))
 
+# function to make afro region country names lowercase
+make_afro_lowercase <- function(df) {
+  df <- df %>%
+    mutate(
+      country = ifelse(
+        Region %in% c("AFRO-East and South", "AFRO-West", "AFRO-Central") & lvl_1 == "country", 
+        str_to_title(country), 
+        country
+      )
+    ) %>% 
+    mutate(
+      country = case_when(
+        country == "Drc"           ~ "DRC",
+        country == "Cote D'ivoire" ~ "Cote d'Ivoire",
+        country == "Guinea-bissau" ~ "Guinea-Bissau",
+        TRUE                       ~ country
+      )
+    )
+  return(df)
+}
+
+# apply to wuenic and HPV data
+wuenic_dta <- make_afro_lowercase(wuenic_dta)
+hpv_dta <- make_afro_lowercase(hpv_dta)
+
 # hpv vaccine intro years
-wiise_hpv_intro_yrs <- read_excel(file.path(directory, type, paste0("utils/wiise-hpv_intro_", rev_yr, "rev.xlsx")))
+wiise_hpv_intro_yrs <- read_excel(file.path(utils, str_glue("wiise-hpv_intro_", rev_yr, "rev.xlsx")))
 
 # base map
 base_map_df <- readRDS(file.path(directory, type, "utils/unicef-base-map.rds")) %>% 
@@ -124,28 +144,27 @@ translation_table <- read_csv(file.path(directory, "dummy/country-specific-chart
   janitor::clean_names() %>%
   mutate(key = tolower(key))
 
-#regions <- c("LACR", "AMR", "UMICs", "Never Gavi MICs", "World Bank non-FCV", "WHO non-FCV")
-
 # render pdfs
 for (reg in regions) {
   
   current_region <- reg
   
-  # set language based on region
-  if (reg %in% c("WCAR", "Western Africa", "Central Africa")) {
-    languages <- c("en", "fr")
-  } else if (reg %in% c("LACR", "AMR")) {
-    languages <- c("en", "es")
-  } else if (reg == "MENA") {
-    languages <- c("en", "ar")
-  } else {
-    languages <- c("en")
-  }
+  languages <- "en"
+  #set language based on region
+  # if (reg %in% c("WCAR", "Western Africa", "Central Africa")) {
+  #   languages <- c("en", "fr")
+  # } else if (reg %in% c("LACR", "AMR")) {
+  #   languages <- c("en", "es")
+  # } else if (reg == "MENA") {
+  #   languages <- c("en", "ar")
+  # } else {
+  #   languages <- c("en")
+  # }
   
   filter_regn <- wuenic_dta %>% filter(Region == reg) %>% filter(lvl_1 == "region") %>% select(country) %>% distinct() %>% pull()
   
   org <- case_when(
-    reg %in% c("ROSA", "ECAR", "MENA", "Non-programme", "ESAR", "LACR", "WCAR", "EAPR") ~ "unicef",
+    reg %in% c("ROSA", "ECAR", "MENA", "Non-programme", "ESAR", "LACR", "WCAR", "EAPR", "APRO") ~ "unicef",
     reg %in% c("Northern Africa", "Southern Africa", "Western Africa", "Central Africa", "Eastern Africa") ~ "au",
     reg %in% c("Gavi 57", "Never Gavi MICs", "Gavi HICs", "Gavi transition") ~ "gavi",
     reg == "European Union" ~ "european_union",
@@ -153,6 +172,7 @@ for (reg in regions) {
     reg %in% c("World Bank FCV", "World Bank non-FCV") ~ "wb_fcv",
     reg %in% c("EMR", "EUR", "AFR", "AMR", "WPR", "SEAR") ~ "who",
     reg %in% c("WHO FCV", "WHO non-FCV") ~ "who_fcv",
+    reg %in% c("AFRO-West", "AFRO-Central", "AFRO-East and South") ~ "who",
     TRUE ~ NA_character_
   )
   
@@ -170,16 +190,29 @@ for (reg in regions) {
       paste0(org, "_talking-points_", reg, "_", language, ".pdf")
     )
     
-    # render
+    # render as pdf
     suppressWarnings(
       rmarkdown::render(
         file.path(directory, type, "talking-points/region-specific-talking-points/wuenic_regional_tp_translated.Rmd"),
         output_file = output_file,
-        params = list(region = reg, language = language, plot_language = plot_lang), 
-        envir = new.env(), 
+        params = list(region = reg, language = language, plot_language = plot_lang),
+        envir = new.env(),
         quiet = TRUE
       )
     )
+    
+    # render as word doc
+    suppressWarnings(
+      rmarkdown::render(
+        file.path(directory, type, "talking-points/region-specific-talking-points/regional_tps_word_format.Rmd"),
+        output_format = "word_document",
+        output_file = sub("\\.pdf$", ".docx", output_file), # change output_file filepath to end with .docx
+        params = list(region = reg, language = language, plot_language = plot_lang),
+        envir = new.env(),
+        quiet = TRUE
+      )
+    )
+        
     
     message("Report generated: ", output_file)
   }

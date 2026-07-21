@@ -1,41 +1,44 @@
 ---
-title: ""
+title: ''
 output:
+  word_document:
+    reference_docx: TP_word_template.dotx
+    toc_depth: 3
   pdf_document:
     keep_tex: false
     latex_engine: xelatex
     toc: false
     toc_depth: 3
-geometry: "left=1cm,right=1cm,top=1.1cm,bottom=1.1cm"
+geometry: left=1cm,right=1cm,top=1.1cm,bottom=1.1cm
 fontsize: 12pt
 params:
-  region: "Default"
-  language: "en"
-  plot_language: "en"
+  region: Default
+  language: en
+  plot_language: en
 header-includes:
-  - \usepackage{enumitem}
-  - \geometry{a4paper, left=15mm, right=15mm, top=15mm, bottom=20mm}
-  - \setlist[itemize,1]{label=\textbullet}
-  - \setlist[itemize,2]{label=\(\circ\)}
-  - \setlist[itemize,3]{label=\(\infty\)}
-  - \setmainfont{Arial}
-  - \usepackage{hyperref}
-  - \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, breaklinks=true}
-  - \usepackage{tcolorbox}
-  - \usepackage{fancyhdr}
-  - \setlength{\headheight}{15pt}
-  - \addtolength{\topmargin}{-3pt}
-  - \definecolor{unicefblue}{RGB}{28, 171, 226}
-  - \pagestyle{fancy}
-  - \fancyhf{}
-  - \fancyhead[L]{}
-  - \fancyhead[C]{}
-  - \fancyhead[R]{\hyperlink{top}{\small \color{black} $\uparrow$ Back to top}}
-  - \fancyfoot[C]{\thepage}
-  - \usepackage{tocloft}
-  - \renewcommand{\cftsecfont}{\normalfont}
-  - \renewcommand{\cftsecpagefont}{\normalfont}
-  - \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+- \usepackage{enumitem}
+- \geometry{a4paper, left=15mm, right=15mm, top=15mm, bottom=20mm}
+- \setlist[itemize,1]{label=\textbullet}
+- \setlist[itemize,2]{label=\(\circ\)}
+- \setlist[itemize,3]{label=\(\infty\)}
+- \setmainfont{Arial}
+- \usepackage{hyperref}
+- \hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, breaklinks=true}
+- \usepackage{tcolorbox}
+- \usepackage{fancyhdr}
+- \setlength{\headheight}{15pt}
+- "\\addtolength{\\topmargin}{-3pt}"
+- \definecolor{unicefblue}{RGB}{28, 171, 226}
+- \pagestyle{fancy}
+- \fancyhf{}
+- \fancyhead[L]{}
+- \fancyhead[C]{}
+- \fancyhead[R]{\hyperlink{top}{\small \color{black} $\uparrow$ Back to top}}
+- \fancyfoot[C]{\thepage}
+- \usepackage{tocloft}
+- \renewcommand{\cftsecfont}{\normalfont}
+- \renewcommand{\cftsecpagefont}{\normalfont}
+- \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 ---
 
 \hypertarget{top}{}
@@ -157,7 +160,7 @@ region_translated_plots<- case_when(
   regn == "WHO FCV" ~ "WHO FCV Settings",
   regn == "EUR" ~ "WHO European",
   regn == "AFR" ~ "WHO African",
-  regn == "AMR" ~ "WHO Region of the Americas",
+  #regn == "AMR" ~ "WHO Region of the Americas",
   regn == "WPR" ~ "WHO Western Pacific",
   regn == "SEAR" ~ "WHO South-East Asia",
   regn == "Never Gavi MICs" ~ "Never Gavi Middle Income Countries",
@@ -179,31 +182,10 @@ if(reg %in% c("European Union", "Central Africa", "Western Africa", "Eastern Afr
 ```
 
 ```{r, results='asis', echo=FALSE}
-cat(paste0('
-\\begin{tcolorbox}[
-  colback=unicefblue,
-  colframe=unicefblue,
-  arc=6pt,
-  boxrule=0pt,
-  left=4mm,
-  right=4mm,
-  top=3mm,
-  bottom=3mm,
-  halign=center,
-  valign=center
-]
-\\begin{center}
-  {\\LARGE \\color{white} \\textbf{', report_title, '}\\\\[0.4em]
-  {\\large \\color{white} ', get_text2("txt_sec_banner_revision", text_vars), " ", rev_yr, '}}
-\\end{center}
-\\end{tcolorbox}
-\\vspace{0.4in}
-'))
-```
-
-```{r toc, echo=FALSE, results='asis'}
-cat(paste0("\\renewcommand{\\contentsname}{", get_text2("txt_contents", text_vars), "}"))
-cat("\\tableofcontents")
+cat(paste0(
+"# ", report_title, "\n",
+"# ", get_text2("txt_sec_banner_revision", text_vars), " ", rev_yr, "\n"
+))
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -252,16 +234,31 @@ world_map <- ggplot(map_df) +
   scale_fill_manual(values = c("Region" = "#1CABE2", "World" = "#d7d7d7"), name = NULL) +
   theme_void() +
   theme(legend.position = "none", 
-        plot.title = element_markdown(hjust = 0.5, size = 14, face = "bold", color = "#1CABE2"),
+        plot.title = element_markdown(hjust = 0.5, size = 12, face = "bold", color = "#1CABE2"),
         panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)) +
   labs(title = str_glue(get_text2("txt_region_title", plot_vars)))
 ```
 \vspace{-40pt}
-```{r ggplot-country-map, echo=FALSE, warning=FALSE, fig.align='center'}
+```{r ggplot-country-map, echo=FALSE, warning=FALSE, fig.align='center', dpi=300}
 suppressMessages(print(world_map))
 ```
 \vspace{-60pt}
-- `r str_glue(get_text2("txt_region_includes_list", text_vars), region_translated = region_translated, n_ctry = length(ctry_list), ctry_list_txt = knitr::combine_words(ctry_list))`
+
+```{r region-includes, echo=FALSE, results='asis'}
+cat("\n\n")
+
+cat(
+  "- ",
+  str_glue(
+    get_text2("txt_region_includes_list", text_vars),
+    region_translated = region_translated,
+    n_ctry = length(ctry_list),
+    ctry_list_txt = knitr::combine_words(ctry_list)
+  ),
+  "\n\n",
+  sep = ""
+)
+```
 
 ```{r setup-vax, include=FALSE}
 # number of countries in region
@@ -653,15 +650,8 @@ for (v in c('dtp1', 'dtp3', 'mcv1')) {
 <!-- ===================== PAGE 1: OVERVIEW ===================== -->
 
 \newpage
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r get_text2("txt_sec_overview", text_vars)`}}
-\end{tcolorbox}
 
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:overview}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_overview", text_vars), "}"))
-```
+## `r get_text2("txt_sec_overview", text_vars)`
 
 \vspace{0.2em}
 
@@ -866,11 +856,11 @@ plt_ia2030_zd_proj_bar_line <- gg <-
   scale_x_continuous(breaks = c(seq(2000,rev_yr,1), 2025, 2030))
 ```
 
-```{r ggplot-allvax-reg, echo=FALSE, fig.width=10, fig.height=6.2}
+```{r ggplot-allvax-reg, echo=FALSE, fig.width=11, fig.height=7, dpi=300}
 print(heatmap_reg)
 ```
 
-```{r ggplot-zd_plot, echo=FALSE, fig.width=10, fig.height=5.5}
+```{r ggplot-zd_plot, echo=FALSE, fig.width=10, fig.height=5.5, dpi=300}
 print(plt_ia2030_zd_proj_bar_line)
 ```
 
@@ -969,15 +959,7 @@ cvg_v <- cvg %>%
 
 \newpage
 
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp1", language)`}}
-\end{tcolorbox}
-
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:dtp1}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp1", language), "}"))
-```
+## `r t_lookup("txt_sec_dtp1", language)`
 
 ```{r, results='asis', echo=FALSE}
 cat(paste0("-   ", str_glue(
@@ -1109,15 +1091,15 @@ if(reg %in% c("Non-programme", "Gavi 57")) {
 
 ```
 
-```{r heatmap-dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height}
+```{r heatmap-dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height, dpi=300}
 print(heatmap_dtp1)
 ```
 
-```{r map_dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5}
+```{r map_dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5, dpi=300}
 print(map_dtp1)
 ```
 
-```{r line_dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5}
+```{r line_dtp1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5, dpi=300}
 print(line_plt_dtp1)
 ```
 
@@ -1185,17 +1167,7 @@ unvac_cvg <- unvac_v %>% arrange(desc(.[[9]])) %>% filter(lvl_1 == "country") %>
   left_join(., cvg_v %>% select(iso3c, vaccine, 9), by = c("iso3c", "vaccine")) %>% rename_with(~"coverage", .cols = 10)# %>% filter(country != "Nicaragua")
 ```
 
-\newpage
-
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_dtp3", language)`}}
-\end{tcolorbox}
-
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:dtp3}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_dtp3", language), "}"))
-```
+## `r t_lookup("txt_sec_dtp3", language)`
 
 \vspace{0.2em}
 
@@ -1292,15 +1264,15 @@ cat(paste0("-   ", str_glue(
 
 \vspace{1em}
 
-```{r ggplot-dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height}
+```{r ggplot-dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height, dpi=300}
 print(heatmap_dtp3)
 ```
 
-```{r ggplot_dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=4.5}
+```{r ggplot_dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=4.5, dpi=300}
 print(map_dtp3)
 ```
 
-```{r line_dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5}
+```{r line_dtp3, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5, dpi=300}
 print(line_plt_dtp3)
 ```
 
@@ -1400,15 +1372,7 @@ dropout_txt_key <- paste0("txt_dropout_", dropout_level_val, "_mcv")
 
 \newpage
 
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_mcv", language)`}}
-\end{tcolorbox}
-
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:mcv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_mcv", language), "}"))
-```
+## `r t_lookup("txt_sec_mcv", language)`
 
 \vspace{0.2em}
 
@@ -1515,15 +1479,15 @@ cat(paste0("-   ", str_glue(
 
 \vspace{1em}
 
-```{r ggplot-mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height}
+```{r ggplot-mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=heatmap_height, dpi=300}
 print(heatmap_mcv1)
 ```
 
-```{r ggplot_mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=4.5}
+```{r ggplot_mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=4.5, dpi=300}
 print(map_mcv1)
 ```
 
-```{r line_mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5}
+```{r line_mcv1, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5, dpi=300}
 print(line_plt_mcv1)
 ```
 
@@ -1592,15 +1556,7 @@ pct_ctry_wuenic_hpv <- round(n_ctry_wuenic_hpv / n_ctry_total * 100, 0)
 
 \newpage
 
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_hpv", language)`}}
-\end{tcolorbox}
-
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:hpv}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_hpv", language), "}"))
-```
+## `r t_lookup("txt_sec_hpv", language)`
 
 \vspace{0.2em}
 
@@ -1745,7 +1701,7 @@ if (has_hpv == 1) {
 }
 ```
 
-```{r line_hpv, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5}
+```{r line_hpv, echo=FALSE, warning=FALSE, fig.width=10, fig.height=6.5, dpi=300}
 if(nrow(hpv_df) > 0) {
 if (has_hpv == 1) {
   print(hpv_region_plot)
@@ -1841,14 +1797,11 @@ if (n_bcu_ctry > 0) {
 
 ```{r, results='asis', echo=FALSE}
 if (n_bcu_ctry > 0) {
-  cat("\\newpage\n")
-  cat("\\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]\n")
-  cat(paste0("\\textcolor{white}{\\Large \\textbf{", get_text2("txt_sec_bcu_header", text_vars), "}}\n"))
-  cat("\\end{tcolorbox}\n")
-  cat("\\phantomsection\n")
-  cat("\\hypertarget{sec:bcu}{}\n")
-  cat(paste0("\\addcontentsline{toc}{section}{", get_text2("txt_sec_bcu_header", text_vars), "}\n"))
-  cat("\\vspace{0.2em}\n")
+
+  cat("\\newpage\n\n")
+
+  cat("## ", get_text2("txt_sec_bcu_header", text_vars), "\n\n", sep = "")
+
 }
 ```
 
@@ -1882,7 +1835,7 @@ if (n_bcu_ctry > 0 && !is.null(recovery_txt4) && nzchar(recovery_txt4)) {
 }
 ```
 
-```{r bcu-recovery-plot, echo=FALSE, warning=FALSE, fig.width=9, fig.height=max(4, n_bcu_ctry * 0.4 + 1.5), out.width="100%"}
+```{r bcu-recovery-plot, echo=FALSE, warning=FALSE, fig.width=9, fig.height=max(4, n_bcu_ctry * 0.4 + 1.5), out.width="100%", dpi=300}
 if (n_bcu_ctry > 0) {
   
   # ggh4x library - using this to dynamically adjust facet heights based on number of each countries with each status
@@ -1965,84 +1918,42 @@ if (n_bcu_ctry > 0) {
 
 ```{r recovery-methodology, echo=FALSE, results='asis'}
 if (n_bcu_ctry > 0) {
-cat(paste0('
-\\begin{tcolorbox}[
-  colback=gray!8,
-  colframe=unicefblue,
-  arc=4pt,
-  boxrule=1pt,
-  title=\\textbf{\\color{white} ', get_text2("txt_bcu_methodology_title", text_vars), '},
-  colbacktitle=unicefblue
-]
-', str_glue(get_text2("txt_bcu_methodology_intro", text_vars), rev_yr = rev_yr), '
-\\begin{itemize}
-    \\item \\textbf{', get_text2("txt_bcu_methodology_recovered_lbl", text_vars), ':} ', str_glue(get_text2("txt_bcu_methodology_recovered_desc", text_vars), rev_yr = rev_yr), '
-    \\item \\textbf{', get_text2("txt_bcu_methodology_recovering_lbl", text_vars), ':} ', str_glue(get_text2("txt_bcu_methodology_recovering_desc", text_vars), rev_yr = rev_yr), '
-    \\item \\textbf{', get_text2("txt_bcu_methodology_not_recovered_lbl", text_vars), ':} ', str_glue(get_text2("txt_bcu_methodology_not_recovered_desc", text_vars), rev_yr = rev_yr), '
-\\end{itemize}
-\\end{tcolorbox}
-\\vspace{0.2in}
-'))
+
+cat(
+  paste0(
+"### ", get_text2("txt_bcu_methodology_title", text_vars), "\n\n",
+str_glue(get_text2("txt_bcu_methodology_intro", text_vars), rev_yr = rev_yr), "\n\n",
+"- **", get_text2("txt_bcu_methodology_recovered_lbl", text_vars), ":** ",
+str_glue(get_text2("txt_bcu_methodology_recovered_desc", text_vars), rev_yr = rev_yr), "\n",
+"- **", get_text2("txt_bcu_methodology_recovering_lbl", text_vars), ":** ",
+str_glue(get_text2("txt_bcu_methodology_recovering_desc", text_vars), rev_yr = rev_yr), "\n",
+"- **", get_text2("txt_bcu_methodology_not_recovered_lbl", text_vars), ":** ",
+str_glue(get_text2("txt_bcu_methodology_not_recovered_desc", text_vars), rev_yr = rev_yr), "\n\n"
+  )
+)
+
 }
 ```
 
 <!-- ===================== APPENDIX ===================== -->
-```{r appendix-fontsize, include=FALSE}
-appendix_fontsize <- switch(language,
-  "ar" = "\\fontsize{12}{15}\\selectfont",
-  "fr" = "\\fontsize{10}{13}\\selectfont",
-  "es" = "\\fontsize{10}{13}\\selectfont",
-  "pt" = "\\fontsize{10}{13}\\selectfont",
-       "\\fontsize{11}{14}\\selectfont"
-)
-```
+
 \newpage
-```{r, echo=FALSE, results='asis'}
-cat(appendix_fontsize)
-```
 
-\begin{tcolorbox}[colback=unicefblue, colframe=unicefblue, arc=0mm, sharp corners]
-\textcolor{white}{\large \textbf{`r t_lookup("txt_sec_appendix", language)`}}
-\end{tcolorbox}
+## `r t_lookup("txt_sec_appendix", language)`
 
-```{r, echo=FALSE, results='asis'}
-cat("\\phantomsection")
-cat("\\hypertarget{sec:overview}{}")
-cat(paste0("\\addcontentsline{toc}{section}{", t_lookup("txt_sec_appendix", language), "}"))
-```
-
-\vspace{0.8em}
-
-\textcolor{cyan}{\large `r t_lookup("txt_appendix_wuenic_header", language)`}
-
-\vspace{0.8em}
+### `r t_lookup("txt_appendix_wuenic_header", language)`
 
 `r t_lookup("txt_appendix_wuenic_body", language)`
 
-\vspace{0.3em}
-`r t_lookup("txt_appendix_methods_header", language)`:
+### `r t_lookup("txt_appendix_methods_header", language)`
 
-\begin{itemize}
-  \item \begin{sloppypar}
-        \textcolor{blue}{\href{https://pubmed.ncbi.nlm.nih.gov/19649368/}{Burton et al. 2009. WHO and UNICEF estimates of national infant immunization coverage: methods and processes}}
-        \end{sloppypar}
-  \item \begin{sloppypar}
-        \textcolor{blue}{\href{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0047806}{Burton et al. 2012. A formal representation of the WHO and UNICEF estimates of national immunization coverage: a computational logic approach}}
-        \end{sloppypar}
-  \item \begin{sloppypar}
-        \textcolor{blue}{\href{https://openpublichealthjournal.com/VOLUME/6/PAGE/73/ABSTRACT/}{Brown et al. 2013. An introduction to the grade of confidence used to characterize uncertainty around the WHO and UNICEF estimates of national immunization coverage}}
-        \end{sloppypar}
-\end{itemize}
-
-\vspace{0.3em}
+- [Burton et al. 2009. WHO and UNICEF estimates of national infant immunization coverage: methods and processes](https://pubmed.ncbi.nlm.nih.gov/19649368/)
+- [Burton et al. 2012. A formal representation of the WHO and UNICEF estimates of national immunization coverage: a computational logic approach](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0047806)
+- [Brown et al. 2013. An introduction to the grade of confidence used to characterize uncertainty around the WHO and UNICEF estimates of national immunization coverage](https://openpublichealthjournal.com/VOLUME/6/PAGE/73/ABSTRACT/)
 
 `r str_glue(get_text2("txt_appendix_wuenic_revision", text_vars))`
 
-\vspace{1.3em}
-
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_definitions_header", language)`}
-
-\vspace{0.3em}
+### `r t_lookup("txt_appendix_definitions_header", language)`
 
 ```{r appendix-definitions, results='asis', echo=FALSE}
 # definitions are stored as a named list in txt_vars_talking_points.R
@@ -2059,13 +1970,14 @@ defs <- list(
   t_lookup("txt_def_pcv3",  language),
   t_lookup("txt_def_yfv",   language),
   t_lookup("txt_def_menga", language),
-  t_lookup("txt_def_hpv",   language))
+  t_lookup("txt_def_hpv",   language)
+)
 
 for (d in defs) {
-  cat(paste0("-   ", d, "\n"))
-  cat("\\vspace{0.5em}\n")
+  cat("- ", d, "\n", sep = "")
 }
 ```
 
-\vspace{1.3em}
-\textcolor{cyan}{\fontsize{14}{16}\selectfont `r t_lookup("txt_appendix_resources_header", language)`} \textcolor{blue}{\href{https://data.unicef.org/resources/immunization/}{\underline{https://data.unicef.org/resources/immunization/}}}
+### `r t_lookup("txt_appendix_resources_header", language)`
+
+<https://data.unicef.org/resources/immunization/>
